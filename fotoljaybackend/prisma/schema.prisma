@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+enum Role {
+  UTILISATEUR
+  VIP
+  MODERATEUR
+  ADMINISTRATEUR
+}
+
+enum StatutProduit {
+  EN_ATTENTE
+  APPROUVE
+  REFUSE
+  EXPIRE
+}
+
+model Utilisateur {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  motDePasse    String
+  prenom        String
+  nom           String
+  telephone     String
+  photoProfil   String?
+  localisation  String?
+  role          Role      @default(UTILISATEUR)
+  finVip        DateTime?
+  dateCreation  DateTime  @default(now())
+  dateMiseAJour DateTime  @updatedAt
+  
+  produits      Produit[]
+  notifications Notification[]
+  
+  @@index([email])
+}
+
+model Produit {
+  id                 String       @id @default(cuid())
+  titre              String
+  description        String        @db.Text
+  prix              Float
+  categorie         String
+  etat              String
+  statut            StatutProduit @default(EN_ATTENTE)
+  raisonRefus       String?       @db.Text
+  vues              Int           @default(0)
+  nombreContacts    Int           @default(0)
+  
+  utilisateurId     String
+  utilisateur       Utilisateur   @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  
+  images            ImageProduit[]
+  
+  dateCreation      DateTime      @default(now())
+  dateExpiration    DateTime
+  dateMiseAJour    DateTime      @updatedAt
+  
+  @@index([statut, dateCreation])
+  @@index([utilisateurId])
+  @@index([dateExpiration])
+}
+
+model ImageProduit {
+  id           String   @id @default(cuid())
+  url          String   @db.Text
+  ordre        Int
+  
+  produitId    String
+  produit      Produit  @relation(fields: [produitId], references: [id], onDelete: Cascade)
+  
+  dateCreation DateTime @default(now())
+  
+  @@index([produitId])
+}
+
+model Notification {
+  id           String   @id @default(cuid())
+  type         String
+  titre        String
+  message      String   @db.Text
+  estLu        Boolean  @default(false)
+  
+  utilisateurId String
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  
+  dateCreation DateTime @default(now())
+  
+  @@index([utilisateurId, estLu])
+  @@index([dateCreation])
+}
