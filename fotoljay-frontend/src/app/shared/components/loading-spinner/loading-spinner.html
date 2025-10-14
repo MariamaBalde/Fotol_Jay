@@ -1,0 +1,17 @@
+<!-- Version plein écran (overlay) -->
+<div *ngIf="pleinEcran" class="spinner-overlay">
+  <div class="spinner-container">
+    <div class="spinner" [ngClass]="'spinner-' + taille" [style.border-top-color]="couleur">
+      <div class="spinner-inner"></div>
+    </div>
+    <p *ngIf="afficherMessage" class="spinner-message">{{ message }}</p>
+  </div>
+</div>
+
+<!-- Version inline -->
+<div *ngIf="!pleinEcran" class="spinner-inline">
+  <div class="spinner" [ngClass]="'spinner-' + taille" [style.border-top-color]="couleur">
+    <div class="spinner-inner"></div>
+  </div>
+  <p *ngIf="afficherMessage" class="spinner-message">{{ message }}</p>
+</div>

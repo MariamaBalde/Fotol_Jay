@@ -50,20 +50,21 @@ model Produit {
   prix              Float
   categorie         String
   etat              String
+  localisation      String?
   statut            StatutProduit @default(EN_ATTENTE)
   raisonRefus       String?       @db.Text
   vues              Int           @default(0)
   nombreContacts    Int           @default(0)
-  
+
   utilisateurId     String
   utilisateur       Utilisateur   @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
-  
+
   images            ImageProduit[]
-  
+
   dateCreation      DateTime      @default(now())
   dateExpiration    DateTime
   dateMiseAJour    DateTime      @updatedAt
-  
+
   @@index([statut, dateCreation])
   @@index([utilisateurId])
   @@index([dateExpiration])
@@ -72,13 +73,14 @@ model Produit {
 model ImageProduit {
   id           String   @id @default(cuid())
   url          String   @db.Text
+  urlMiniature String?  @db.Text
   ordre        Int
-  
+
   produitId    String
   produit      Produit  @relation(fields: [produitId], references: [id], onDelete: Cascade)
-  
+
   dateCreation DateTime @default(now())
-  
+
   @@index([produitId])
 }
 

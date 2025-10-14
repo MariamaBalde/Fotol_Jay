@@ -1,12 +1,19 @@
 import { ProduitsRepository } from './ProduitsRepository.js';
 import type { FiltresProduits } from './ProduitsRepository.js';
+import { NotificationsService } from '../notifications/NotificationsService.js';
+
 import { StatutProduit } from '@prisma/client';
+
 
 export class ProduitsService {
   private repository: ProduitsRepository;
+    private serviceNotifications: NotificationsService;
+
 
   constructor() {
     this.repository = new ProduitsRepository();
+    this.serviceNotifications = new NotificationsService();
+
   }
 
   // Créer un nouveau produit
@@ -119,22 +126,7 @@ export class ProduitsService {
     return await this.repository.supprimer(id);
   }
 
-  // Incrémenter le compteur de contacts
-  async enregistrerContact(id: string) {
-    const produit = await this.repository.trouverParId(id);
 
-    if (!produit) {
-      throw new Error('Produit non trouvé');
-    }
-
-    if (produit.statut !== StatutProduit.APPROUVE) {
-      throw new Error('Ce produit n\'est pas disponible');
-    }
-
-    await this.repository.incrementerContacts(id);
-
-    return { message: 'Contact enregistré' };
-  }
 
   // Modération : Lister les produits en attente
   async listerProduitsEnAttente() {
@@ -163,8 +155,20 @@ export class ProduitsService {
       raisonRefus
     );
 
-    // TODO: Envoyer une notification à l'utilisateur
-    // await notificationService.envoyer(...)
+    // Envoyer une notification à l'utilisateur
+    if (statut === 'APPROUVE') {
+      await this.serviceNotifications.notifierProduitApprouve(
+        produit.utilisateurId,
+        produit.titre,
+        produit.id
+      );
+    } else {
+      await this.serviceNotifications.notifierProduitRefuse(
+        produit.utilisateurId,
+        produit.titre,
+        raisonRefus!
+      );
+    }
 
     return produitModere;
   }
@@ -190,6 +194,31 @@ export class ProduitsService {
       produits: produitsExpires,
     };
   }
+
+
+  // Modifier la méthode enregistrerContact
+  async enregistrerContact(id: string) {
+    const produit = await this.repository.trouverParId(id);
+
+    if (!produit) {
+      throw new Error('Produit non trouvé');
+    }
+
+    if (produit.statut !== StatutProduit.APPROUVE) {
+      throw new Error('Ce produit n\'est pas disponible');
+    }
+
+    await this.repository.incrementerContacts(id);
+
+    // Notifier le vendeur
+    await this.serviceNotifications.notifierContactRecu(
+      produit.utilisateurId,
+      produit.titre,
+      produit.id
+    );
+
+    return { message: 'Contact enregistré' };
+  }
 }
 
 interface CreateProduitDto {
@@ -198,9 +227,11 @@ interface CreateProduitDto {
   prix: number;
   categorie: string;
   etat: string;
+  localisation?: string;
 }
 
 interface ImageProduitDto {
   url: string;
+  urlMiniature?: string;
   ordre: number;
 }

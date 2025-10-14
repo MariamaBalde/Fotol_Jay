@@ -1,0 +1,159 @@
+<div class="mes-produits">
+  <div class="container">
+    <!-- Header -->
+    <div class="header-section">
+      <h1>📦 Mes annonces</h1>
+      <p class="subtitle">Gérez vos produits publiés sur FreshMarket</p>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="stats-grid" *ngIf="!chargement">
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ totalProduits }}</div>
+          <div class="stat-label">Total</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ produitsActifs }}</div>
+          <div class="stat-label">Actifs</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ produitsEnAttente }}</div>
+          <div class="stat-label">En attente</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">⌛</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ produitsExpires }}</div>
+          <div class="stat-label">Expirés</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-bar">
+      <button class="btn-primary" (click)="naviguerVersCreation()">
+        ➕ Nouvelle annonce
+      </button>
+      <button class="btn-secondary" (click)="rafraichir()" [disabled]="chargement">
+        🔄 Actualiser
+      </button>
+    </div>
+
+    <!-- État de chargement -->
+    <div class="loading-state" *ngIf="chargement">
+      <div class="loading-spinner"></div>
+      <p>Chargement de vos annonces...</p>
+    </div>
+
+    <!-- État d'erreur -->
+    <div class="error-state" *ngIf="erreur && !chargement">
+      <div class="error-icon">⚠️</div>
+      <h3>Erreur de chargement</h3>
+      <p>{{ erreur }}</p>
+      <button class="btn-primary" (click)="rafraichir()">Réessayer</button>
+    </div>
+
+    <!-- État vide -->
+    <div class="empty-state" *ngIf="!chargement && !erreur && totalProduits === 0">
+      <div class="empty-icon">📭</div>
+      <h3>Aucune annonce</h3>
+      <p>Vous n'avez pas encore publié d'annonce sur FreshMarket.</p>
+      <button class="btn-primary" (click)="naviguerVersCreation()">
+        Créer ma première annonce
+      </button>
+    </div>
+
+    <!-- Liste des produits -->
+    <div class="produits-list" *ngIf="!chargement && !erreur && totalProduits > 0">
+      <div class="produits-grid">
+        <div
+          class="produit-item"
+          *ngFor="let produit of (produits$ | async)?.produits"
+        >
+          <!-- Image principale -->
+          <div class="produit-image">
+            <img
+              *ngIf="produit.images && produit.images.length > 0"
+              [src]="obtenirUrlImage(produit.images[0].url)"
+              [alt]="produit.titre"
+              (error)="handleImageError($event)"
+            />
+            <div class="no-image" *ngIf="!produit.images || produit.images.length === 0">
+              📷 Pas d'image
+            </div>
+
+            <!-- Badge VIP -->
+            <div class="vip-badge" *ngIf="produit.utilisateur.finVip">
+              ⭐ VIP
+            </div>
+
+            <!-- Badge statut -->
+            <div class="status-badge" [ngClass]="obtenirCouleurStatut(produit.statut)">
+              {{ obtenirStatutLibelle(produit.statut) }}
+            </div>
+          </div>
+
+          <!-- Contenu -->
+          <div class="produit-content">
+            <h3 class="produit-title">{{ produit.titre }}</h3>
+            <p class="produit-price">{{ produit.prix | number: '1.0-0' }} FCFA</p>
+
+            <div class="produit-meta">
+              <span class="meta-item">
+                👁️ {{ produit.vues }} vues
+              </span>
+              <span class="meta-item">
+                📍 {{ produit.utilisateur.localisation || 'Non spécifié' }}
+              </span>
+            </div>
+
+            <!-- Barre d'expiration (si approuvé) -->
+            <div class="expiration-bar" *ngIf="produit.statut === 'APPROUVE'">
+              <div class="expiration-fill"></div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="produit-actions">
+            <button
+              class="action-btn primary"
+              (click)="modifierProduit(produit)"
+              title="Modifier"
+            >
+              ✏️
+            </button>
+
+            <button
+              class="action-btn secondary"
+              *ngIf="peutRepublier(produit)"
+              (click)="republierProduit(produit)"
+              title="Republier"
+            >
+              🔄
+            </button>
+
+            <button
+              class="action-btn danger"
+              (click)="supprimerProduit(produit)"
+              title="Supprimer"
+            >
+              🗑️
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,132 @@
+<div class="liste-produits-container">
+  <!-- Header avec recherche -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-text">
+        <h1 class="page-titre">🛍️ FotolJay</h1>
+        <p class="page-sous-titre">Trouvez les meilleures offres près de chez vous</p>
+      </div>
+
+      <!-- Barre de recherche -->
+      <div class="search-bar">
+        <input
+          type="text"
+          [(ngModel)]="rechercheTexte"
+          (keyup.enter)="rechercher()"
+          placeholder="Rechercher un produit..."
+          class="search-input"
+        />
+        <button class="search-button" (click)="rechercher()">🔍</button>
+      </div>
+
+      <!-- Bouton créer produit -->
+      <button
+        *ngIf="authService.estConnecte()"
+        class="btn-creer-produit"
+        (click)="allerCreerProduit()"
+      >
+        <span class="btn-icon">📸</span>
+        <span>Vendre un produit</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="filtres-section">
+    <!-- Catégories -->
+    <div class="filtres-groupe">
+      <label class="filtre-label">Catégorie :</label>
+      <div class="filtres-liste">
+        <button
+          *ngFor="let categorie of categories"
+          class="filtre-btn"
+          [class.active]="
+            (categorie === 'Tous' && !filtres.categorie) || filtres.categorie === categorie
+          "
+          (click)="filtrerParCategorie(categorie)"
+        >
+          {{ categorie }}
+        </button>
+      </div>
+    </div>
+
+    <!-- États -->
+    <div class="filtres-groupe">
+      <label class="filtre-label">État :</label>
+      <div class="filtres-liste">
+        <button
+          *ngFor="let etat of etats"
+          class="filtre-btn"
+          [class.active]="(etat === 'Tous' && !filtres.etat) || filtres.etat === etat"
+          (click)="filtrerParEtat(etat)"
+        >
+          {{ etat === 'Tous' ? 'Tous' : etat.replace('_', ' ') }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Compteur de résultats -->
+  <div class="resultats-info" *ngIf="!chargement">
+    <p>
+      <strong>{{ totalProduits }}</strong> produit(s) trouvé(s)
+      <span *ngIf="filtres.recherche"> pour "{{ filtres.recherche }}"</span>
+    </p>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="chargement" class="loading-container">
+    <app-loading-spinner [taille]="'large'" [message]="'Chargement des produits...'">
+    </app-loading-spinner>
+  </div>
+
+  <!-- Message d'erreur -->
+  <div *ngIf="erreur && !chargement" class="error-message">
+    <span class="error-icon">⚠️</span>
+    <span>{{ erreur }}</span>
+  </div>
+
+  <!-- Grille de produits -->
+  <div *ngIf="!chargement && !erreur" class="produits-grid">
+    <app-product-card *ngFor="let produit of produits" [produit]="produit">
+    </app-product-card>
+  </div>
+
+  <!-- Message si aucun produit -->
+  <div *ngIf="!chargement && !erreur && produits.length === 0" class="no-products">
+    <div class="no-products-icon">📦</div>
+    <h3>Aucun produit trouvé</h3>
+    <p>Essayez de modifier vos filtres ou votre recherche</p>
+    <button class="btn-reset" (click)="filtres = { page: 1, limite: 12 }; chargerProduits()">
+      Réinitialiser les filtres
+    </button>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="totalPages > 1 && !chargement" class="pagination">
+    <button
+      class="pagination-btn"
+      [disabled]="pageActuelle === 1"
+      (click)="changerPage(pageActuelle - 1)"
+    >
+      ← Précédent
+    </button>
+
+    <button
+      *ngFor="let page of obtenirTableauPages()"
+      class="pagination-btn"
+      [class.active]="page === pageActuelle"
+      (click)="changerPage(page)"
+    >
+      {{ page }}
+    </button>
+
+    <button
+      class="pagination-btn"
+      [disabled]="pageActuelle === totalPages"
+      (click)="changerPage(pageActuelle + 1)"
+    >
+      Suivant →
+    </button>
+  </div>
+</div>

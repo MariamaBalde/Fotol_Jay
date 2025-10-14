@@ -1,0 +1,250 @@
+<div class="creer-produit-container">
+  <!-- Loading global -->
+  <app-loading-spinner
+    *ngIf="enChargement"
+    [pleinEcran]="true"
+    [taille]="'large'"
+    [message]="uploadEnCours ? 'Upload des photos...' : 'Création du produit...'"
+  ></app-loading-spinner>
+
+  <!-- Header -->
+  <div class="header-section">
+    <button class="btn-retour" routerLink="/produits">← Retour</button>
+    <h1 class="page-titre">📸 Vendre un produit</h1>
+    <p class="page-sous-titre">Photos en temps réel uniquement - Transparence garantie</p>
+  </div>
+
+  <!-- Indicateur d'étapes -->
+  <div class="etapes-indicateur">
+    <div class="etape" [class.active]="etapeActuelle === 'photos'" [class.complete]="etapeActuelle === 'infos'">
+      <div class="etape-numero">1</div>
+      <div class="etape-label">Photos</div>
+    </div>
+    <div class="etape-ligne" [class.complete]="etapeActuelle === 'infos'"></div>
+    <div class="etape" [class.active]="etapeActuelle === 'infos'">
+      <div class="etape-numero">2</div>
+      <div class="etape-label">Informations</div>
+    </div>
+  </div>
+
+  <!-- Contenu principal -->
+  <div class="contenu-principal">
+    <!-- ÉTAPE 1 : PHOTOS -->
+    <div *ngIf="etapeActuelle === 'photos'" class="etape-content photos-section">
+      <div class="section-header">
+        <h2 class="section-titre">📷 Prenez des photos</h2>
+        <p class="section-description">
+          Minimum 1 photo, maximum 5. Import depuis la galerie interdit.
+        </p>
+      </div>
+
+      <!-- Galerie d'images -->
+      <div class="galerie-images">
+        <div *ngFor="let image of images; let i = index" class="image-card">
+          <img [src]="image.base64" [alt]="'Photo ' + (i + 1)" />
+
+          <!-- Badge ordre -->
+          <div class="badge-ordre">{{ i + 1 }}</div>
+
+          <!-- Actions -->
+          <div class="image-actions">
+            <button
+              *ngIf="i > 0"
+              class="btn-icon"
+              (click)="deplacerPhoto(i, 'up')"
+              title="Déplacer vers le haut"
+            >
+              ⬆️
+            </button>
+            <button
+              *ngIf="i < images.length - 1"
+              class="btn-icon"
+              (click)="deplacerPhoto(i, 'down')"
+              title="Déplacer vers le bas"
+            >
+              ⬇️
+            </button>
+            <button class="btn-icon btn-supprimer" (click)="supprimerPhoto(i)" title="Supprimer">
+              🗑️
+            </button>
+          </div>
+        </div>
+
+        <!-- Bouton ajouter photo -->
+        <button
+          *ngIf="images.length < 5"
+          class="btn-ajouter-photo"
+          (click)="prendrePhoto()"
+          [disabled]="enChargement"
+        >
+          <span class="btn-icon-large">📸</span>
+          <span class="btn-text">Prendre une photo</span>
+          <span class="btn-hint">{{ images.length }}/5</span>
+        </button>
+      </div>
+
+      <!-- Avertissement -->
+      <div class="alerte-info">
+        <span class="alerte-icon">⚠️</span>
+        <div class="alerte-content">
+          <strong>Transparence garantie</strong>
+          <p>
+            L'import de photos depuis la galerie est désactivé pour garantir l'authenticité et la
+            qualité des produits.
+          </p>
+        </div>
+      </div>
+
+      <!-- Bouton suivant -->
+      <button
+        class="btn btn-primary btn-large"
+        (click)="passerAuxInfos()"
+        [disabled]="images.length === 0"
+      >
+        Continuer vers les informations →
+      </button>
+    </div>
+
+    <!-- ÉTAPE 2 : INFORMATIONS -->
+    <div *ngIf="etapeActuelle === 'infos'" class="etape-content infos-section">
+      <div class="section-header">
+        <h2 class="section-titre">📝 Informations du produit</h2>
+        <p class="section-description">Décrivez votre produit en détail</p>
+      </div>
+
+      <!-- Formulaire -->
+      <form [formGroup]="produitForm" (ngSubmit)="onSubmit()" class="produit-form">
+        <!-- Titre -->
+        <div class="form-group">
+          <label for="titre" class="form-label">
+            Titre du produit <span class="required">*</span>
+          </label>
+          <input
+            id="titre"
+            type="text"
+            formControlName="titre"
+            class="form-input"
+            placeholder="Ex: iPhone 13 Pro Max 256GB"
+            [class.error]="titre?.invalid && titre?.touched"
+          />
+          <div *ngIf="titre?.invalid && titre?.touched" class="error-message">
+            <span *ngIf="titre?.errors?.['required']">Le titre est requis</span>
+            <span *ngIf="titre?.errors?.['minlength']">Minimum 5 caractères</span>
+            <span *ngIf="titre?.errors?.['maxlength']">Maximum 100 caractères</span>
+          </div>
+        </div>
+
+        <!-- Prix -->
+        <div class="form-group">
+          <label for="prix" class="form-label">
+            Prix (FCFA) <span class="required">*</span>
+          </label>
+          <input
+            id="prix"
+            type="number"
+            formControlName="prix"
+            class="form-input"
+            placeholder="450000"
+            [class.error]="prix?.invalid && prix?.touched"
+          />
+          <div *ngIf="prix?.invalid && prix?.touched" class="error-message">
+            <span *ngIf="prix?.errors?.['required']">Le prix est requis</span>
+            <span *ngIf="prix?.errors?.['min']">Minimum 100 FCFA</span>
+          </div>
+        </div>
+
+        <!-- Catégorie et État -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="categorie" class="form-label">
+              Catégorie <span class="required">*</span>
+            </label>
+            <select
+              id="categorie"
+              formControlName="categorie"
+              class="form-select"
+              [class.error]="categorie?.invalid && categorie?.touched"
+            >
+              <option value="">Sélectionner...</option>
+              <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+            </select>
+            <div *ngIf="categorie?.invalid && categorie?.touched" class="error-message">
+              <span>La catégorie est requise</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="etat" class="form-label">
+              État <span class="required">*</span>
+            </label>
+            <select
+              id="etat"
+              formControlName="etat"
+              class="form-select"
+              [class.error]="etat?.invalid && etat?.touched"
+            >
+              <option value="">Sélectionner...</option>
+              <option *ngFor="let et of etats" [value]="et.value">{{ et.label }}</option>
+            </select>
+            <div *ngIf="etat?.invalid && etat?.touched" class="error-message">
+              <span>L'état est requis</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label for="description" class="form-label">
+            Description <span class="required">*</span>
+          </label>
+          <textarea
+            id="description"
+            formControlName="description"
+            class="form-textarea"
+            rows="6"
+            placeholder="Décrivez votre produit en détail : état, utilisation, accessoires inclus..."
+            [class.error]="description?.invalid && description?.touched"
+          ></textarea>
+          <div class="character-count">
+            {{ description?.value?.length || 0 }} / 1000 caractères
+          </div>
+          <div *ngIf="description?.invalid && description?.touched" class="error-message">
+            <span *ngIf="description?.errors?.['required']">La description est requise</span>
+            <span *ngIf="description?.errors?.['minlength']">Minimum 20 caractères</span>
+            <span *ngIf="description?.errors?.['maxlength']">Maximum 1000 caractères</span>
+          </div>
+        </div>
+
+        <!-- Info expiration -->
+        <div class="alerte-warning">
+          <span class="alerte-icon">⏰</span>
+          <div class="alerte-content">
+            <strong>Expiration automatique</strong>
+            <p>
+              Votre annonce sera visible pendant <strong>7 jours</strong> puis supprimée
+              automatiquement. Vous recevrez une notification avant expiration.
+            </p>
+          </div>
+        </div>
+
+        <!-- Boutons -->
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="retourAuxPhotos()">
+            ← Retour aux photos
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="produitForm.invalid || enChargement"
+          >
+            <span *ngIf="!enChargement">Publier le produit</span>
+            <span *ngIf="enChargement" class="spinner">
+              <span class="spinner-icon">⏳</span>
+              Publication...
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,10 +1,15 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import authRoute from './modules/Auth/AuthRoute.js';
 import userRoute from './modules/Utilisateur/UserRoute.js';
 import routesProduits from './modules/produits/ProduitsRoute.js';
+import routesNotifications from './modules/notifications/NotificationsRoute.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 dotenv.config();
 
@@ -15,13 +20,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/uploads', express.static('uploads'));
-
+app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
 
 app.use('/api/auth', authRoute);
 app.use('/api/users', userRoute);
 app.use('/api/produits', routesProduits);
-
+app.use('/api/notifications', routesNotifications);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });

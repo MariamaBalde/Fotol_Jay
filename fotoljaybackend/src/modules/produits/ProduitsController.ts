@@ -1,6 +1,10 @@
 import { type Response } from 'express';
 import { type AuthRequest } from '../../middleware/AuthMiddleware.js';
 import { ProduitsService } from './ProduitsService.js';
+import { ProcesseurImage } from '../../utils/imageProcessor.js';
+import { ValidationImage } from '../../utils/imageValidation.js';
+import { supprimerFichiers } from '../../utils/imageUpload.js';
+import path from 'path';
 
 export class ProduitsController {
   private serviceProduits: ProduitsService;
@@ -13,16 +17,49 @@ export class ProduitsController {
     try {
       const utilisateurId = req.user!.userId;
       const donnees = req.body;
-      const images = req.body.images || []; // Les URLs des images uploadées
 
-      const produit = await this.serviceProduits.creerProduit(donnees, utilisateurId, images);
+      console.log('Données reçues:', donnees);
+
+      // Validate required fields
+      if (!donnees.titre || !donnees.description || !donnees.prix || !donnees.categorie || !donnees.etat) {
+        return res.status(400).json({
+          erreur: 'Données invalides ou manquantes',
+          details: 'Tous les champs obligatoires doivent être remplis'
+        });
+      }
+
+      // Validate images array
+      if (!donnees.images || !Array.isArray(donnees.images) || donnees.images.length === 0) {
+        return res.status(400).json({
+          erreur: 'Images invalides',
+          details: 'Au moins une image est requise'
+        });
+      }
+
+      // Remove metadata from images before sending to service
+      const imagesSansMetadata = donnees.images.map((img: any) => ({
+        url: img.url,
+        urlMiniature: img.urlMiniature,
+        ordre: img.ordre
+      }));
+
+      const produit = await this.serviceProduits.creerProduit(
+        donnees,
+        utilisateurId,
+        imagesSansMetadata
+      );
 
       return res.status(201).json({
         message: 'Produit créé avec succès. En attente de modération.',
-        produit,
+        produit
       });
+
     } catch (erreur: any) {
-      return res.status(400).json({ erreur: erreur.message });
+      console.error('Erreur création produit:', erreur);
+      return res.status(400).json({
+        erreur: erreur.message,
+        details: 'Une erreur est survenue lors de la création du produit'
+      });
     }
   }
 

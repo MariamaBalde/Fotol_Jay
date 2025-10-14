@@ -33,9 +33,9 @@ export class AuthService {
 
     const token = generateToken(user.id, user.role);
 
-    const { motDePasse: _, ...userWithoutPassword } = user;
+    const { motDePasse: _, ...utilisateur } = user;
 
-    return { user: userWithoutPassword, token };
+    return { utilisateur, token };
   }
 
   async login(email: string, motDePasse: string) {
@@ -53,8 +53,8 @@ export class AuthService {
 
     const token = generateToken(user.id, user.role);
 
-    const { motDePasse: _, ...userWithoutPassword } = user;
+    const { motDePasse: _, ...utilisateur } = user;
 
-    return { user: userWithoutPassword, token };
+    return { utilisateur, token };
   }
 }

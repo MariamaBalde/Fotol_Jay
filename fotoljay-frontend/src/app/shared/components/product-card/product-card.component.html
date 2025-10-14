@@ -1,0 +1,62 @@
+<div class="product-card" (click)="voirDetail()">
+  <!-- Badge VIP -->
+  <div *ngIf="estVIP()" class="badge-vip">
+    <span class="vip-icon">⭐</span>
+    <span>VIP</span>
+  </div>
+
+  <!-- Image du produit -->
+  <div class="product-image">
+    <img
+      [src]="produit.images && produit.images.length ? obtenirUrlImage(produit.images[0].url) : placeholderImage"
+      [alt]="produit.titre"
+      (error)="handleImageError($event)"
+      class="product-image"
+    />
+
+    <!-- Badge statut -->
+    <div class="badge-statut" [ngClass]="'statut-' + produit.statut.toLowerCase()">
+      <span *ngIf="produit.statut === 'EN_ATTENTE'">⏳ En attente</span>
+      <span *ngIf="produit.statut === 'APPROUVE'">✓ Approuvé</span>
+      <span *ngIf="produit.statut === 'REFUSE'">✗ Refusé</span>
+      <span *ngIf="produit.statut === 'EXPIRE'">⌛ Expiré</span>
+    </div>
+  </div>
+
+  <!-- Informations du produit -->
+  <div class="product-info">
+    <h3 class="product-titre">{{ produit.titre }}</h3>
+    <p class="product-prix">{{ produit.prix | number: '1.0-0' }} FCFA</p>
+
+    <!-- Métadonnées -->
+    <div class="product-meta">
+      <span class="meta-item">
+        <span class="meta-icon">👁️</span>
+        {{ produit.vues }}
+      </span>
+      <span class="meta-item">
+        <span class="meta-icon">📍</span>
+        {{ produit.utilisateur.localisation || 'Dakar' }}
+      </span>
+      <span class="meta-item">
+        <span class="meta-icon">⏰</span>
+        {{ calculerJoursRestants() }}j
+      </span>
+    </div>
+
+    <!-- État et catégorie -->
+    <div class="product-tags">
+      <span class="tag tag-etat">{{ produit.etat.replace('_', ' ') }}</span>
+      <span class="tag tag-categorie">{{ produit.categorie }}</span>
+    </div>
+
+    <!-- Barre d'expiration -->
+    <div class="expiration-bar">
+      <div
+        class="expiration-progress"
+        [ngClass]="'expiration-' + obtenirCouleurExpiration()"
+        [style.width.%]="(calculerJoursRestants() / 7) * 100"
+      ></div>
+    </div>
+  </div>
+</div>

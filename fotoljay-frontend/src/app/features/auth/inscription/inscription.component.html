@@ -1,0 +1,204 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <!-- Logo et Titre -->
+    <div class="auth-header">
+      <div class="logo">📱</div>
+      <h1 class="titre">Rejoignez FreshMarket</h1>
+      <p class="sous-titre">Créez votre compte en quelques secondes</p>
+    </div>
+
+    <!-- Formulaire -->
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
+      <!-- Message d'erreur -->
+      <div *ngIf="erreurMessage" class="alert alert-error">
+        <span class="alert-icon">⚠️</span>
+        <span>{{ erreurMessage }}</span>
+      </div>
+
+      <!-- Prénom et Nom -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="prenom" class="form-label">
+            Prénom <span class="required">*</span>
+          </label>
+          <input
+            id="prenom"
+            type="text"
+            formControlName="prenom"
+            class="form-input"
+            placeholder="Amadou"
+            [class.error]="prenom?.invalid && prenom?.touched"
+          />
+          <div *ngIf="prenom?.invalid && prenom?.touched" class="error-message">
+            <span *ngIf="prenom?.errors?.['required']">Le prénom est requis</span>
+            <span *ngIf="prenom?.errors?.['minlength']">Minimum 2 caractères</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="nom" class="form-label">
+            Nom <span class="required">*</span>
+          </label>
+          <input
+            id="nom"
+            type="text"
+            formControlName="nom"
+            class="form-input"
+            placeholder="Diallo"
+            [class.error]="nom?.invalid && nom?.touched"
+          />
+          <div *ngIf="nom?.invalid && nom?.touched" class="error-message">
+            <span *ngIf="nom?.errors?.['required']">Le nom est requis</span>
+            <span *ngIf="nom?.errors?.['minlength']">Minimum 2 caractères</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email" class="form-label">
+          Email <span class="required">*</span>
+        </label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="form-input"
+          placeholder="amadou@exemple.com"
+          [class.error]="email?.invalid && email?.touched"
+        />
+        <div *ngIf="email?.invalid && email?.touched" class="error-message">
+          <span *ngIf="email?.errors?.['required']">L'email est requis</span>
+          <span *ngIf="email?.errors?.['email']">Email invalide</span>
+        </div>
+      </div>
+
+      <!-- Téléphone -->
+      <div class="form-group">
+        <label for="telephone" class="form-label">
+          Téléphone <span class="required">*</span>
+        </label>
+        <input
+          id="telephone"
+          type="tel"
+          formControlName="telephone"
+          class="form-input"
+          placeholder="+221771234567"
+          [class.error]="telephone?.invalid && telephone?.touched"
+        />
+        <div *ngIf="telephone?.invalid && telephone?.touched" class="error-message">
+          <span *ngIf="telephone?.errors?.['required']">Le téléphone est requis</span>
+          <span *ngIf="telephone?.errors?.['pattern']">
+            Format: +221XXXXXXXXX ou 9 chiffres
+          </span>
+        </div>
+      </div>
+
+      <!-- Localisation -->
+      <div class="form-group">
+        <label for="localisation" class="form-label">Localisation (optionnel)</label>
+        <input
+          id="localisation"
+          type="text"
+          formControlName="localisation"
+          class="form-input"
+          placeholder="Dakar, Plateau"
+        />
+      </div>
+
+      <!-- Mot de passe -->
+      <div class="form-group">
+        <label for="motDePasse" class="form-label">
+          Mot de passe <span class="required">*</span>
+        </label>
+        <div class="input-with-icon">
+          <input
+            id="motDePasse"
+            [type]="afficherMotDePasse ? 'text' : 'password'"
+            formControlName="motDePasse"
+            class="form-input"
+            placeholder="••••••••"
+            [class.error]="motDePasse?.invalid && motDePasse?.touched"
+          />
+          <button type="button" class="icon-button" (click)="toggleMotDePasse()">
+            {{ afficherMotDePasse ? '🙈' : '👁️' }}
+          </button>
+        </div>
+        <div *ngIf="motDePasse?.invalid && motDePasse?.touched" class="error-message">
+          <span *ngIf="motDePasse?.errors?.['required']">Le mot de passe est requis</span>
+          <span *ngIf="motDePasse?.errors?.['minlength']">Minimum 8 caractères</span>
+        </div>
+      </div>
+
+      <!-- Confirmation mot de passe -->
+      <div class="form-group">
+        <label for="confirmationMotDePasse" class="form-label">
+          Confirmer le mot de passe <span class="required">*</span>
+        </label>
+        <div class="input-with-icon">
+          <input
+            id="confirmationMotDePasse"
+            [type]="afficherConfirmation ? 'text' : 'password'"
+            formControlName="confirmationMotDePasse"
+            class="form-input"
+            placeholder="••••••••"
+            [class.error]="
+              (confirmationMotDePasse?.invalid && confirmationMotDePasse?.touched) ||
+              (!passwordsMatch && confirmationMotDePasse?.touched)
+            "
+          />
+          <button type="button" class="icon-button" (click)="toggleConfirmation()">
+            {{ afficherConfirmation ? '🙈' : '👁️' }}
+          </button>
+        </div>
+        <div
+          *ngIf="confirmationMotDePasse?.invalid && confirmationMotDePasse?.touched"
+          class="error-message"
+        >
+          <span *ngIf="confirmationMotDePasse?.errors?.['required']">
+            La confirmation est requise
+          </span>
+        </div>
+        <div
+          *ngIf="!passwordsMatch && confirmationMotDePasse?.touched"
+          class="error-message"
+        >
+          <span>Les mots de passe ne correspondent pas</span>
+        </div>
+      </div>
+
+      <!-- CGU -->
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="accepterCGU" class="checkbox-input" />
+          <span class="checkbox-text">
+            J'accepte les
+            <a href="#" class="link-text">conditions générales d'utilisation</a>
+          </span>
+        </label>
+        <div *ngIf="accepterCGU?.invalid && accepterCGU?.touched" class="error-message">
+          <span>Vous devez accepter les CGU</span>
+        </div>
+      </div>
+
+      <!-- Bouton d'inscription -->
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="enChargement || registerForm.invalid"
+      >
+        <span *ngIf="!enChargement">S'inscrire</span>
+        <span *ngIf="enChargement" class="spinner">
+          <span class="spinner-icon">⏳</span>
+          Inscription en cours...
+        </span>
+      </button>
+
+      <!-- Lien vers connexion -->
+      <div class="auth-switch">
+        <span>Vous avez déjà un compte ?</span>
+        <a routerLink="/auth/login" class="link-primary">Se connecter</a>
+      </div>
+    </form>
+  </div>
+</div>

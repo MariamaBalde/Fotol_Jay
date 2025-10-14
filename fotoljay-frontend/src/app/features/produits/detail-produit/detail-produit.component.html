@@ -1,0 +1,169 @@
+<div class="detail-produit-container">
+  <!-- Loading -->
+  <app-loading-spinner
+    *ngIf="chargement"
+    [pleinEcran]="true"
+    [taille]="'large'"
+    [message]="'Chargement du produit...'"
+  ></app-loading-spinner>
+
+  <!-- Erreur -->
+  <div *ngIf="erreur && !chargement" class="error-container">
+    <div class="error-content">
+      <span class="error-icon">😕</span>
+      <h2>{{ erreur }}</h2>
+      <button class="btn-retour" (click)="retour()">
+        ← Retour à la liste
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenu du produit -->
+  <div *ngIf="produit && !chargement" class="produit-content">
+    <!-- Bouton retour -->
+    <button class="btn-retour-mobile" (click)="retour()">
+      ← Retour
+    </button>
+
+    <div class="produit-grid">
+      <!-- Galerie d'images -->
+      <div class="galerie-section">
+        <!-- Image principale -->
+        <div class="image-principale">
+          <img
+            *ngIf="hasImages()"
+            [src]="getActiveImageUrl()"
+            [alt]="produit ? produit.titre : ''"
+          />
+          <div *ngIf="!hasImages()" class="image-placeholder">
+            📦
+          </div>
+
+          <!-- Badge VIP -->
+          <div *ngIf="authService.estVIP()" class="badge-vip">
+            ⭐ VIP
+          </div>
+
+          <!-- Compteur d'images -->
+          <div *ngIf="hasMultipleImages()" class="compteur-images">
+            {{ imageActive + 1 }} / {{ getImagesCount() }}
+          </div>
+        </div>
+
+        <!-- Miniatures -->
+        <div *ngIf="hasMultipleImages()" class="miniatures">
+          <button
+            *ngFor="let image of produit?.images || []; let i = index"
+            class="miniature"
+            [class.active]="i === imageActive"
+            (click)="changerImage(i)"
+          >
+            <img [src]="obtenirUrlImage(image.url)" [alt]="'Image ' + (i + 1)" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Informations du produit -->
+      <div class="info-section">
+        <!-- En-tête -->
+        <div class="produit-header">
+          <h1 class="produit-titre">{{ produit.titre }}</h1>
+          
+          <!-- Statut -->
+          <span class="badge-statut" [ngClass]="'statut-' + produit.statut.toLowerCase()">
+            <span *ngIf="produit.statut === 'EN_ATTENTE'">⏳ En attente de modération</span>
+            <span *ngIf="produit.statut === 'APPROUVE'">✓ Produit vérifié</span>
+            <span *ngIf="produit.statut === 'REFUSE'">✗ Produit refusé</span>
+            <span *ngIf="produit.statut === 'EXPIRE'">⌛ Produit expiré</span>
+          </span>
+        </div>
+
+        <!-- Prix -->
+        <div class="produit-prix">
+          {{ produit.prix | number: '1.0-0' }} <span class="devise">FCFA</span>
+        </div>
+
+        <!-- Métadonnées -->
+        <div class="produit-meta">
+          <div class="meta-item">
+            <span class="meta-icon">👁️</span>
+            <span>{{ produit.vues }} vues</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-icon">📞</span>
+            <span>{{ produit.nombreContacts }} contacts</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-icon">⏰</span>
+            <span>Expire dans {{ calculerJoursRestants() }} jour(s)</span>
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="produit-tags">
+          <span class="tag tag-etat">{{ produit.etat.replace('_', ' ') }}</span>
+          <span class="tag tag-categorie">{{ produit.categorie }}</span>
+        </div>
+
+        <!-- Description -->
+        <div class="produit-description">
+          <h3 class="section-titre">Description</h3>
+          <p>{{ produit.description }}</p>
+        </div>
+
+        <!-- Informations vendeur -->
+        <div class="vendeur-card">
+          <h3 class="section-titre">Informations du vendeur</h3>
+          <div class="vendeur-info">
+            <div class="vendeur-avatar">
+              {{ produit.utilisateur.prenom.charAt(0) }}{{ produit.utilisateur.nom.charAt(0) }}
+            </div>
+            <div class="vendeur-details">
+              <p class="vendeur-nom">
+                {{ produit.utilisateur.prenom }} {{ produit.utilisateur.nom }}
+              </p>
+              <p class="vendeur-localisation">
+                <span class="meta-icon">📍</span>
+                {{ produit.utilisateur.localisation || 'Dakar, Sénégal' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Boutons de contact -->
+          <div *ngIf="!estProprietaire() && produit.statut === 'APPROUVE'" class="boutons-contact">
+            <button class="btn btn-appeler" (click)="appelerVendeur()">
+              <span class="btn-icon">📞</span>
+              <span>Appeler</span>
+            </button>
+            <button class="btn btn-whatsapp" (click)="envoyerWhatsApp()">
+              <span class="btn-icon">💬</span>
+              <span>WhatsApp</span>
+            </button>
+          </div>
+
+          <!-- Message si propriétaire -->
+          <div *ngIf="estProprietaire()" class="message-proprietaire">
+            <span class="info-icon">ℹ️</span>
+            <span>C'est votre produit</span>
+          </div>
+        </div>
+
+        <!-- Informations supplémentaires -->
+        <div class="infos-supplementaires">
+          <div class="info-row">
+            <span class="info-label">Publié le :</span>
+            <span class="info-value">{{ produit.dateCreation | date: 'dd/MM/yyyy à HH:mm' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Expire le :</span>
+            <span class="info-value">{{ produit.dateExpiration | date: 'dd/MM/yyyy à HH:mm' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">ID produit :</span>
+            <span class="info-value mono">{{ produit.id.substring(0, 8) }}...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

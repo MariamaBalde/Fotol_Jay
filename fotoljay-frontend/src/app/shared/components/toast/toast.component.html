@@ -1,0 +1,14 @@
+<div class="toast-container">
+  <div
+    *ngFor="let toast of toasts"
+    class="toast toast-{{ toast.type }}"
+    [@slideIn]
+  >
+    <div class="toast-icon">{{ obtenirIcone(toast.type) }}</div>
+    <div class="toast-content">
+      <div class="toast-titre">{{ toast.titre }}</div>
+      <div class="toast-message">{{ toast.message }}</div>
+    </div>
+    <button class="toast-close" (click)="supprimerToast(toast.id)">✕</button>
+  </div>
+</div>

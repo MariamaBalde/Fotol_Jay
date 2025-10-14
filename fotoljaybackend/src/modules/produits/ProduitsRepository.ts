@@ -21,9 +21,10 @@ export class ProduitsRepository {
     prix: number;
     categorie: string;
     etat: string;
+    localisation?: string;
     utilisateurId: string;
     dateExpiration: Date;
-    images?: { url: string; ordre: number }[];
+    images?: { url: string; urlMiniature?: string; ordre: number }[];
   }) {
     const { images, utilisateurId, ...donneeProduit } = donnees;
 
@@ -35,6 +36,7 @@ export class ProduitsRepository {
       images: {
         create: images?.map(img => ({
           url: img.url,
+          urlMiniature: img.urlMiniature,
           ordre: img.ordre
         })) ?? []
       }
@@ -64,7 +66,7 @@ export class ProduitsRepository {
   }
 
   // Ajouter des images au produit
-  async ajouterImages(produitId: string, images: { url: string; ordre: number }[]) {
+  async ajouterImages(produitId: string, images: { url: string; urlMiniature?: string; ordre: number }[]) {
     return await prisma.imageProduit.createMany({
       data: images.map((img) => ({
         ...img,

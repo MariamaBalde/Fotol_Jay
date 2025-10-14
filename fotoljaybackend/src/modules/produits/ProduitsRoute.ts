@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { ProduitsController } from './ProduitsController.js';
+import { controleurUpload } from './UploadController.js';
+
 import { AuthMiddleware } from '../../middleware/AuthMiddleware.js';
 import { RoleMiddleware } from '../../middleware/RoleMiddleware.js';
 import { ValidateRequest } from '../../middleware/ValidationMiddleware.js';
@@ -9,8 +11,30 @@ import {
   schemaModerationProduit,
 } from './ProduitsValidation.js';
 
+import {
+  uploadProduit,
+  uploadProfil,
+  gererErreursUpload,
+} from '../../utils/imageUpload.js';
+
 const router = Router();
 const produitsController = new ProduitsController();
+
+router.post(
+  '/upload/images',
+  AuthMiddleware,
+  uploadProduit.array('images', 5),
+  gererErreursUpload,
+  controleurUpload.uploadImagesProduit.bind(controleurUpload)
+);
+
+router.post(
+  '/upload/profil',
+  AuthMiddleware,
+  uploadProfil.single('photo'),
+  gererErreursUpload,
+  controleurUpload.uploadPhotoProfil.bind(controleurUpload)
+);
 
 // Routes publiques
 router.get('/', produitsController.listerProduits.bind(produitsController));
