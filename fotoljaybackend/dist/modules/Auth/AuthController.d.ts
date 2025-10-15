@@ -4,5 +4,6 @@ export declare class AuthController {
     constructor();
     register(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
     login(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
+    creerAdministrateur(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
 }
 //# sourceMappingURL=AuthController.d.ts.map
