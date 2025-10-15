@@ -1,0 +1,45 @@
+<app-admin-header></app-admin-header>
+
+<div class="vip-settings-container">
+  <h1>⭐ Paramètres VIP</h1>
+
+  <div *ngIf="loading" class="loading">Chargement des paramètres...</div>
+
+  <div *ngIf="!loading && settings.length === 0" class="no-settings">
+    Aucun paramètre trouvé
+  </div>
+
+  <div *ngIf="!loading && settings.length > 0" class="settings-list">
+    <div *ngFor="let setting of settings" class="setting-card">
+      <div class="setting-info">
+        <h3>{{ setting.cle }}</h3>
+        <p>{{ setting.description }}</p>
+        <small>Type: {{ setting.type }}</small>
+      </div>
+
+      <div class="setting-value">
+        <input
+          *ngIf="setting.type === 'STRING'"
+          type="text"
+          [value]="setting.valeur"
+          (blur)="updateSetting(setting.cle, $event.target.value)"
+          class="value-input"
+        />
+        <input
+          *ngIf="setting.type === 'NUMBER'"
+          type="number"
+          [value]="setting.valeur"
+          (blur)="updateSetting(setting.cle, $event.target.value)"
+          class="value-input"
+        />
+        <input
+          *ngIf="setting.type === 'BOOLEAN'"
+          type="checkbox"
+          [checked]="setting.valeur === 'true'"
+          (change)="updateSetting(setting.cle, $event.target.checked ? 'true' : 'false')"
+          class="value-checkbox"
+        />
+      </div>
+    </div>
+  </div>
+</div>

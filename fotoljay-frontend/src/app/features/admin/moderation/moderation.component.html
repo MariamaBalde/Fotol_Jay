@@ -1,0 +1,79 @@
+<app-admin-header></app-admin-header>
+
+<div class="moderation-container">
+  <div class="header">
+    <h1>🛡️ Modération des Produits</h1>
+    <p>Gérez les produits en attente de validation</p>
+  </div>
+
+
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Chargement des produits en attente...</p>
+  </div>
+
+  <div *ngIf="!loading && !error" class="products-grid">
+    <div *ngIf="pendingProducts.length === 0" class="empty-state">
+      <div class="empty-icon">✅</div>
+      <h3>Aucun produit en attente</h3>
+      <p>Tous les produits ont été modérés</p>
+    </div>
+
+    <div *ngFor="let product of pendingProducts" class="product-card">
+      <div class="product-header">
+        <div class="product-info">
+          <h3>{{ product.titre }}</h3>
+          <p class="product-meta">
+            Par {{ product.vendeurNom }} ({{ product.vendeurTelephone }})
+            • {{ product.categorie }}
+            • {{ product.prix }} FCFA
+          </p>
+          <p class="product-description">{{ product.description }}</p>
+        </div>
+        <div class="product-status">
+          <span class="status-badge status-pending">En attente</span>
+        </div>
+      </div>
+
+      <div class="product-images" *ngIf="product.images && product.images.length > 0">
+        <div class="images-grid">
+          <img
+            *ngFor="let image of product.images"
+            [src]="getImageUrl(image)"
+            [alt]="product.titre"
+            class="product-image"
+            (click)="openImageModal(image)"
+          />
+        </div>
+      </div>
+
+      <div class="product-actions">
+        <button
+          class="btn btn-success"
+          (click)="approveProduct(product.id)"
+          [disabled]="moderatingProductId === product.id"
+          title="Approuver le produit"
+        >
+          <i class="fas fa-check"></i>
+        </button>
+
+        <button
+          class="btn btn-danger"
+          (click)="rejectProduct(product.id)"
+          [disabled]="moderatingProductId === product.id"
+          title="Rejeter le produit"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour voir les images en grand -->
+<div *ngIf="selectedImage" class="image-modal" (click)="closeImageModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <button class="modal-close" (click)="closeImageModal()" title="Fermer"><i class="fas fa-times"></i></button>
+    <img [src]="getImageUrl(selectedImage)" [alt]="selectedImage" class="modal-image" />
+  </div>
+</div>

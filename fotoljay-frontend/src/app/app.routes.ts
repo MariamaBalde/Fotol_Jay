@@ -16,5 +16,9 @@ export const routes: Routes = [
     path: 'produits',
     loadChildren: () => import('./features/produits/produits.module').then(m => m.ProduitsModule)
   },
+  {
+    path: 'admin',
+    loadChildren: () => import('./features/admin/admin.module').then(m => m.AdminModule)
+  },
   { path: '', redirectTo: '/produits', pathMatch: 'full' }
 ];

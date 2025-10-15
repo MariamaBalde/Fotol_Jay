@@ -64,7 +64,13 @@ export class ConnexionComponent implements OnInit {
             'Connexion réussie',
             `Bienvenue ${reponse.utilisateur.prenom || 'utilisateur'} !`
           );
-          this.router.navigate(['/produits']);
+
+          // Redirection basée sur le rôle
+          if (reponse.utilisateur.role === 'ADMINISTRATEUR') {
+            this.router.navigate(['/admin']);
+          } else {
+            this.router.navigate(['/produits']);
+          }
         } else {
           this.notificationService.error(
             'Erreur de connexion',

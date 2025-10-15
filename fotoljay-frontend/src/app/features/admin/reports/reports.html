@@ -1,0 +1,76 @@
+<app-admin-header></app-admin-header>
+
+<div class="moderation-container">
+  <div class="header">
+    <h1>🚨 Gestion des Signalements</h1>
+    <p>Gérez les signalements utilisateurs et modérez le contenu</p>
+  </div>
+
+  <!-- Section export -->
+  <div class="export-section" style="margin-bottom: 40px; padding: 20px; background: #f8f9fa; border-radius: 12px;">
+    <h2>📊 Exporter des Rapports</h2>
+    <div class="export-buttons" style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button (click)="exportReport('users')" class="btn btn-success"><i class="fas fa-users"></i> Rapport Utilisateurs</button>
+      <button (click)="exportReport('products')" class="btn btn-success"><i class="fas fa-box"></i> Rapport Produits</button>
+      <button (click)="exportReport('reports')" class="btn btn-success"><i class="fas fa-flag"></i> Rapport Signalements</button>
+    </div>
+  </div>
+
+  <!-- Erreur - Remplacé par popup -->
+
+  <!-- Chargement -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Chargement des signalements...</p>
+  </div>
+
+  <!-- Liste des signalements -->
+  <div *ngIf="!loading && !error" class="products-grid">
+    <div *ngIf="reports.length === 0" class="empty-state">
+      <div class="empty-icon">✅</div>
+      <h3>Aucun signalement</h3>
+      <p>Tous les signalements ont été traités</p>
+    </div>
+
+    <div *ngFor="let report of reports" class="product-card">
+      <div class="product-header">
+        <div class="product-info">
+          <h3>{{ report.type }} - {{ report.raison }}</h3>
+          <p class="product-meta">
+            Signalé par {{ report.signaleur.nom }} {{ report.signaleur.prenom }}
+            • {{ report.dateCreation | date:'short' }}
+          </p>
+          <p class="product-description">{{ report.description }}</p>
+        </div>
+        <div class="product-status">
+          <span class="status-badge" [ngClass]="getStatusClass(report.statut)">
+            {{ report.statut }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="product-actions" *ngIf="report.statut === 'EN_ATTENTE'">
+        <button
+          class="btn btn-success"
+          (click)="processReport(report.id, 'TRAITER')"
+          [disabled]="processingReportId === report.id"
+          title="Traiter le signalement"
+        >
+          <span *ngIf="processingReportId !== report.id"><i class="fas fa-check"></i> Traiter</span>
+          <span *ngIf="processingReportId === report.id" class="loading-spinner"></span>
+        </button>
+
+        <button
+          class="btn btn-danger"
+          (click)="processReport(report.id, 'REJETER')"
+          [disabled]="processingReportId === report.id"
+          title="Rejeter le signalement"
+        >
+          <span *ngIf="processingReportId !== report.id"><i class="fas fa-times"></i> Rejeter</span>
+          <span *ngIf="processingReportId === report.id" class="loading-spinner"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

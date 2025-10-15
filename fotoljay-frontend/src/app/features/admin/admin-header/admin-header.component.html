@@ -1,0 +1,104 @@
+<header class="admin-header">
+  <div class="admin-header-content">
+    <div class="admin-logo">
+      <i class="fas fa-cog"></i>
+      <span>Panel Administrateur</span>
+    </div>
+
+    <nav class="admin-nav">
+      <button
+        class="nav-btn"
+        [class.active]="isActiveRoute('/admin/dashboard')"
+        (click)="navigateTo('/admin/dashboard')"
+        title="Tableau de bord"
+      >
+        <i class="fas fa-tachometer-alt"></i>
+        <span class="nav-text">Dashboard</span>
+      </button>
+
+      <button
+        class="nav-btn"
+        [class.active]="isActiveRoute('/admin/moderation')"
+        (click)="navigateTo('/admin/moderation')"
+        title="Modération"
+      >
+        <i class="fas fa-shield-alt"></i>
+        <span class="nav-text">Modération</span>
+      </button>
+
+      <button
+        class="nav-btn"
+        [class.active]="isActiveRoute('/admin/users')"
+        (click)="navigateTo('/admin/users')"
+        title="Utilisateurs"
+      >
+        <i class="fas fa-users"></i>
+        <span class="nav-text">Utilisateurs</span>
+      </button>
+
+      <button
+        class="nav-btn"
+        [class.active]="isActiveRoute('/admin/reports')"
+        (click)="navigateTo('/admin/reports')"
+        title="Signalements"
+      >
+        <i class="fas fa-flag"></i>
+        <span class="nav-text">Signalements</span>
+      </button>
+
+      <button
+        class="nav-btn"
+        [class.active]="isActiveRoute('/admin/moderators')"
+        (click)="navigateTo('/admin/moderators')"
+        title="Modérateurs"
+      >
+        <i class="fas fa-user-shield"></i>
+        <span class="nav-text">Modérateurs</span>
+      </button>
+
+      <button
+        class="nav-btn"
+        [class.active]="isActiveRoute('/admin/vip-settings')"
+        (click)="navigateTo('/admin/vip-settings')"
+        title="Paramètres VIP"
+      >
+        <i class="fas fa-star"></i>
+        <span class="nav-text">VIP</span>
+      </button>
+    </nav>
+
+    <div class="admin-actions">
+      <button
+        class="logout-btn"
+        (click)="showLogoutModal = true"
+        title="Se déconnecter"
+      >
+        <i class="fas fa-sign-out-alt"></i>
+        <span class="logout-text">Déconnexion</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal de déconnexion -->
+  <div *ngIf="showLogoutModal" class="logout-modal-overlay" (click)="showLogoutModal = false">
+    <div class="logout-modal" (click)="$event.stopPropagation()">
+      <div class="logout-modal-header">
+        <i class="fas fa-sign-out-alt logout-icon"></i>
+        <h3>Confirmation de déconnexion</h3>
+      </div>
+
+      <div class="logout-modal-body">
+        <p>Êtes-vous sûr de vouloir vous déconnecter de votre session administrateur ?</p>
+      </div>
+
+      <div class="logout-modal-actions">
+        <button class="btn-cancel" (click)="showLogoutModal = false">
+          <i class="fas fa-times"></i> Annuler
+        </button>
+        <button class="btn-confirm" (click)="confirmLogout()">
+          <i class="fas fa-sign-out-alt"></i> Se déconnecter
+        </button>
+      </div>
+    </div>
+  </div>
+</header>

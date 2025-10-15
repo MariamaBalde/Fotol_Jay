@@ -229,7 +229,7 @@ export class ProduitsRepository {
 
   // Lister les produits en attente de modération
   async listerEnAttente() {
-    return await prisma.produit.findMany({
+    const produits = await prisma.produit.findMany({
       where: { statut: StatutProduit.EN_ATTENTE },
       include: {
         utilisateur: {
@@ -238,6 +238,7 @@ export class ProduitsRepository {
             prenom: true,
             nom: true,
             email: true,
+            telephone: true,
           },
         },
         images: {
@@ -246,6 +247,22 @@ export class ProduitsRepository {
       },
       orderBy: { dateCreation: 'asc' },
     });
+
+    // Transformer les données pour correspondre au format attendu par le frontend
+    return produits.map(produit => ({
+      id: produit.id,
+      titre: produit.titre,
+      description: produit.description,
+      categorie: produit.categorie,
+      etat: produit.etat,
+      prix: produit.prix,
+      vendeurNom: produit.utilisateur.prenom + ' ' + produit.utilisateur.nom,
+      vendeurTelephone: produit.utilisateur.telephone || 'Non spécifié',
+      vendeurEmail: produit.utilisateur.email,
+      dateCreation: produit.dateCreation.toISOString(),
+      vues: produit.vues,
+      images: produit.images.map(img => img.url), // Retourner seulement les URLs uniques
+    }));
   }
 
   // Modérer un produit

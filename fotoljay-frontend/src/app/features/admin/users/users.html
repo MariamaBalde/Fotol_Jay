@@ -1,0 +1,81 @@
+<app-admin-header></app-admin-header>
+
+<div class="moderation-container">
+  <div class="header">
+    <h1>👥 Gestion des Utilisateurs</h1>
+    <p>Gérez les comptes utilisateurs de la plateforme</p>
+  </div>
+
+  <!-- Erreur - Remplacé par popup -->
+
+  <!-- Chargement -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Chargement des utilisateurs...</p>
+  </div>
+
+  <!-- Liste des utilisateurs -->
+  <div *ngIf="!loading && !error" class="products-grid">
+    <div *ngIf="users.length === 0" class="empty-state">
+      <div class="empty-icon">👥</div>
+      <h3>Aucun utilisateur trouvé</h3>
+      <p>La plateforme n'a pas encore d'utilisateurs</p>
+    </div>
+
+    <div *ngFor="let user of users" class="product-card">
+      <div class="product-header">
+        <div class="product-info">
+          <h3>{{ user.nom }}</h3>
+          <p class="product-meta">
+            {{ user.email }} • {{ user.telephone }}
+            • {{ user.productsCount || 0 }} produits
+          </p>
+          <p class="product-description">
+            <strong>Rôle:</strong> {{ user.role }}<br>
+            <strong>Statut:</strong> {{ user.status }}<br>
+            <strong>Inscription:</strong> {{ user.createdAt | date:'short' }}
+          </p>
+        </div>
+        <div class="product-status">
+          <span class="status-badge" [ngClass]="getStatusClass(user.status)">
+            {{ user.status }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="product-actions">
+        <select
+          [value]="user.status"
+          (change)="updateUserStatus(user.id, $any($event.target).value)"
+          class="status-select"
+        >
+          <option value="ACTIF">Actif</option>
+          <option value="SUSPENDU">Suspendu</option>
+          <option value="BLOQUE">Bloqué</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="total > limit">
+    <button
+      (click)="onPageChange(page - 1)"
+      [disabled]="page <= 1"
+      class="btn-page"
+    >
+      Précédent
+    </button>
+
+    <span>Page {{ page }} sur {{ totalPages }}</span>
+
+    <button
+      (click)="onPageChange(page + 1)"
+      [disabled]="page >= totalPages"
+      class="btn-page"
+    >
+      Suivant
+    </button>
+  </div>
+</div>

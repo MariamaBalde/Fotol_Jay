@@ -1,0 +1,201 @@
+<app-admin-header></app-admin-header>
+
+<div class="moderation-container">
+  <div class="header">
+    <h1>🛡️ Gestion des Modérateurs</h1>
+    <p>Gérez l'équipe de modération et suivez leurs performances</p>
+  </div>
+
+  <!-- Bouton ajouter modérateur -->
+  <div class="add-moderator-section" style="margin-bottom: 30px; text-align: center;">
+    <button class="btn btn-success" (click)="showCreateForm = !showCreateForm">
+      <i class="fas fa-plus"></i> Ajouter un Modérateur
+    </button>
+  </div>
+
+  <!-- Formulaire création modérateur -->
+  <div *ngIf="showCreateForm" class="create-form" style="margin-bottom: 40px; padding: 20px; background: #f8f9fa; border-radius: 12px;">
+    <h3>Créer un nouveau modérateur</h3>
+    <form (ngSubmit)="createModerator()" #moderatorForm="ngForm">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
+        <div>
+          <label>Nom:</label>
+          <input type="text" [(ngModel)]="newModerator.nom" name="nom" required class="form-input">
+        </div>
+        <div>
+          <label>Prénom:</label>
+          <input type="text" [(ngModel)]="newModerator.prenom" name="prenom" required class="form-input">
+        </div>
+        <div>
+          <label>Email:</label>
+          <input type="email" [(ngModel)]="newModerator.email" name="email" required class="form-input">
+        </div>
+        <div>
+          <label>Téléphone:</label>
+          <input type="tel" [(ngModel)]="newModerator.telephone" name="telephone" required class="form-input">
+        </div>
+        <div>
+          <label>Mot de passe:</label>
+          <input type="password" [(ngModel)]="newModerator.motDePasse" name="motDePasse" required class="form-input">
+        </div>
+      </div>
+      <div style="text-align: center;">
+        <button type="submit" class="btn btn-success" [disabled]="!moderatorForm.valid"><i class="fas fa-save"></i> Créer</button>
+        <button type="button" class="btn btn-danger" (click)="showCreateForm = false" style="margin-left: 10px;"><i class="fas fa-times"></i> Annuler</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Formulaire modification modérateur -->
+  <div *ngIf="showEditForm && editingModerator" class="create-form" style="margin-bottom: 40px; padding: 20px; background: #fff3cd; border-radius: 12px; border: 1px solid #ffeaa7;">
+    <h3>Modifier le modérateur</h3>
+    <form (ngSubmit)="updateModerator()" #editModeratorForm="ngForm">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
+        <div>
+          <label>Nom:</label>
+          <input type="text" [(ngModel)]="editForm.nom" name="nom" required class="form-input">
+        </div>
+        <div>
+          <label>Prénom:</label>
+          <input type="text" [(ngModel)]="editForm.prenom" name="prenom" required class="form-input">
+        </div>
+        <div>
+          <label>Email:</label>
+          <input type="email" [(ngModel)]="editForm.email" name="email" required class="form-input">
+        </div>
+        <div>
+          <label>Téléphone:</label>
+          <input type="tel" [(ngModel)]="editForm.telephone" name="telephone" required class="form-input">
+        </div>
+      </div>
+      <div style="text-align: center;">
+        <button type="submit" class="btn btn-warning" [disabled]="!editModeratorForm.valid"><i class="fas fa-save"></i> Mettre à jour</button>
+        <button type="button" class="btn btn-secondary" (click)="cancelEdit()" style="margin-left: 10px;"><i class="fas fa-times"></i> Annuler</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Erreur - Remplacé par popup -->
+
+  <!-- Chargement -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Chargement des modérateurs...</p>
+  </div>
+
+  <!-- Liste des modérateurs -->
+  <div *ngIf="!loading" class="products-grid">
+    <div *ngIf="moderators.length === 0" class="empty-state">
+      <div class="empty-icon">🛡️</div>
+      <h3>Aucun modérateur</h3>
+      <p>Créez votre premier modérateur pour commencer</p>
+    </div>
+
+    <div *ngFor="let moderator of moderators" class="product-card">
+      <div class="product-header">
+        <div class="product-info">
+          <h3>{{ moderator.prenom }} {{ moderator.nom }}</h3>
+          <p class="product-meta">
+            {{ moderator.email }} • {{ moderator.telephone }}
+            • {{ moderator.role }}
+          </p>
+          <p class="product-description">
+            <strong>Statut:</strong>
+            <span [ngClass]="getStatusClass(moderator.statutModerateur)">
+              {{ moderator.statutModerateur || 'ACTIF' }}
+            </span><br>
+            <strong>Produits modérés (ce mois):</strong> {{ moderator.stats?.productsModeratedThisMonth || 0 }}<br>
+            <strong>Taux d'acceptation:</strong> {{ moderator.stats?.acceptanceRate || 0 }}%<br>
+            <strong>Temps moyen:</strong> {{ moderator.stats?.avgModerationTime || 0 }}ms<br>
+            <strong>Note moyenne:</strong> ⭐ {{ moderator.stats?.avgRating || 0 }}/5 ({{ moderator.stats?.totalFeedbacks || 0 }} avis)
+          </p>
+        </div>
+        <div class="product-status">
+          <span class="status-badge" [ngClass]="getRoleClass(moderator.role)">
+            {{ moderator.role }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="product-actions">
+        <select
+          [value]="moderator.role"
+          (change)="updateUserRole(moderator.id, $any($event.target).value)"
+          class="status-select"
+        >
+          <option value="UTILISATEUR">Utilisateur</option>
+          <option value="MODERATEUR">Modérateur</option>
+          <option value="ADMINISTRATEUR">Administrateur</option>
+        </select>
+
+        <select
+          [value]="moderator.statutModerateur || 'ACTIF'"
+          (change)="updateModeratorStatus(moderator.id, $any($event.target).value)"
+          class="status-select"
+          style="margin-left: 10px;"
+        >
+          <option value="ACTIF">Actif</option>
+          <option value="INACTIF">Inactif</option>
+          <option value="SUSPENDU">Suspendu</option>
+        </select>
+
+        <button class="btn btn-success" (click)="viewModeratorHistory(moderator.id)" style="margin-left: 10px;" title="Historique">
+          <i class="fas fa-history"></i>
+        </button>
+
+        <button class="btn btn-primary" (click)="editModerator(moderator)" style="margin-left: 10px;" title="Modifier">
+          <i class="fas fa-edit"></i>
+        </button>
+
+        <button class="btn btn-danger" (click)="deleteModerator(moderator)" style="margin-left: 10px;" title="Supprimer">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Classement des performances -->
+  <div class="ranking-section" style="margin-top: 50px;">
+    <h2>🏆 Classement des Modérateurs</h2>
+    <div *ngIf="ranking && ranking.length > 0" class="ranking-list">
+      <div *ngFor="let mod of ranking; let i = index" class="ranking-item" [ngClass]="{'top-performer': i < 3}">
+        <div class="rank-number">#{{ i + 1 }}</div>
+        <div class="rank-info">
+          <h4>{{ mod.nom }}</h4>
+          <p>Score: {{ mod.score }} | Décisions: {{ mod.totalDecisions }} | Taux: {{ mod.acceptanceRate }}%</p>
+        </div>
+        <div class="rank-medal" *ngIf="i < 3">
+          {{ i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉' }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal historique -->
+<div *ngIf="selectedModeratorHistory" class="image-modal" (click)="closeHistoryModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()" style="max-width: 800px; max-height: 600px; overflow-y: auto;">
+    <button class="modal-close" (click)="closeHistoryModal()">✕</button>
+    <h3>Historique des décisions</h3>
+    <div *ngFor="let decision of selectedModeratorHistory" class="history-item" style="padding: 10px; border-bottom: 1px solid #eee;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <strong>{{ decision.produit.titre }}</strong> - {{ decision.produit.categorie }}
+          <br>
+          <small>Par {{ decision.produit.utilisateur.prenom }} {{ decision.produit.utilisateur.nom }}</small>
+        </div>
+        <div style="text-align: right;">
+          <span [ngClass]="decision.decision === 'APPROUVER' ? 'status-approved' : 'status-rejected'">
+            {{ decision.decision }}
+          </span>
+          <br>
+          <small>{{ decision.dateCreation | date:'short' }}</small>
+        </div>
+      </div>
+      <div *ngIf="decision.commentaire" style="margin-top: 5px; color: #666;">
+        <em>{{ decision.commentaire }}</em>
+      </div>
+    </div>
+  </div>
+</div>
