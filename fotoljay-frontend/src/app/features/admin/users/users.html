@@ -2,11 +2,104 @@
 
 <div class="moderation-container">
   <div class="header">
-    <h1>👥 Gestion des Utilisateurs</h1>
-    <p>Gérez les comptes utilisateurs de la plateforme</p>
+    <h1>👤 Gestion des Utilisateurs</h1>
+    <p>Administration complète des comptes utilisateurs</p>
   </div>
 
-  <!-- Erreur - Remplacé par popup -->
+  <!-- Vue d'ensemble - Statistiques -->
+  <div class="overview-stats" *ngIf="userStats">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon users-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-content">
+          <h4>Total Utilisateurs</h4>
+          <p class="stat-value">{{ userStats.totalUsers }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon active-users-icon">
+          <i class="fas fa-user-check"></i>
+        </div>
+        <div class="stat-content">
+          <h4>Utilisateurs Actifs</h4>
+          <p class="stat-value">{{ userStats.activeUsers }}</p>
+          <span class="stat-label">(30 derniers jours)</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon vip-users-icon">
+          <i class="fas fa-star"></i>
+        </div>
+        <div class="stat-content">
+          <h4>Utilisateurs VIP</h4>
+          <p class="stat-value">{{ userStats.vipUsers }}</p>
+          <span class="stat-label">{{ userStats.vipPercentage }}%</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon retention-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stat-content">
+          <h4>Taux de Rétention</h4>
+          <p class="stat-value">{{ userStats.retentionRate }}%</p>
+          <span class="stat-trend positive">↗️ +3%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres et recherche -->
+  <div class="filters-section">
+    <div class="search-group">
+      <i class="fas fa-search"></i>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="onSearchChange()"
+        placeholder="Rechercher par nom, email, téléphone..."
+        class="search-input"
+      />
+    </div>
+
+    <div class="filter-group">
+      <label><i class="fas fa-filter"></i> Rôle:</label>
+      <select [(ngModel)]="selectedRole" (change)="applyFilters()" class="filter-select">
+        <option value="">Tous les rôles</option>
+        <option value="UTILISATEUR">Utilisateur</option>
+        <option value="VIP">VIP</option>
+        <option value="MODERATEUR">Modérateur</option>
+        <option value="ADMINISTRATEUR">Administrateur</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label><i class="fas fa-user-tag"></i> Statut:</label>
+      <select [(ngModel)]="selectedStatus" (change)="applyFilters()" class="filter-select">
+        <option value="">Tous les statuts</option>
+        <option value="ACTIF">Actif</option>
+        <option value="SUSPENDU">Suspendu</option>
+        <option value="BLOQUE">Bloqué</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label><i class="fas fa-sort"></i> Tri:</label>
+      <select [(ngModel)]="sortBy" (change)="applyFilters()" class="filter-select">
+        <option value="date-desc">Date inscription ↓</option>
+        <option value="date-asc">Date inscription ↑</option>
+        <option value="products-desc">Produits ↓</option>
+        <option value="products-asc">Produits ↑</option>
+        <option value="name-asc">Nom A-Z</option>
+        <option value="name-desc">Nom Z-A</option>
+      </select>
+    </div>
+  </div>
 
   <!-- Chargement -->
   <div *ngIf="loading" class="loading-container">
@@ -19,21 +112,28 @@
     <div *ngIf="users.length === 0" class="empty-state">
       <div class="empty-icon">👥</div>
       <h3>Aucun utilisateur trouvé</h3>
-      <p>La plateforme n'a pas encore d'utilisateurs</p>
+      <p *ngIf="searchTerm || selectedRole || selectedStatus">Aucun résultat pour ces critères de recherche</p>
+      <p *ngIf="!searchTerm && !selectedRole && !selectedStatus">La plateforme n'a pas encore d'utilisateurs</p>
     </div>
 
-    <div *ngFor="let user of users" class="product-card">
+    <div *ngFor="let user of users" class="product-card" [class.vip-user]="user.role === 'VIP'">
       <div class="product-header">
         <div class="product-info">
-          <h3>{{ user.nom }}</h3>
+          <h3>
+            {{ user.nom }}
+            <span *ngIf="user.role === 'VIP'" class="vip-badge">⭐</span>
+          </h3>
           <p class="product-meta">
-            {{ user.email }} • {{ user.telephone }}
-            • {{ user.productsCount || 0 }} produits
+            <i class="fas fa-envelope"></i> {{ user.email }} •
+            <i class="fas fa-phone"></i> {{ user.telephone }} •
+            <i class="fas fa-box"></i> {{ user.productsCount || 0 }} produits
           </p>
           <p class="product-description">
-            <strong>Rôle:</strong> {{ user.role }}<br>
-            <strong>Statut:</strong> {{ user.status }}<br>
-            <strong>Inscription:</strong> {{ user.createdAt | date:'short' }}
+            <strong>Rôle:</strong>
+            <span [ngClass]="getRoleClass(user.role)">{{ user.role }}</span><br>
+            <strong>Statut:</strong>
+            <span [ngClass]="getStatusClass(user.status)">{{ user.status }}</span><br>
+            <strong>Inscription:</strong> {{ user.createdAt | date:'medium' }}
           </p>
         </div>
         <div class="product-status">
@@ -45,6 +145,15 @@
 
       <!-- Actions -->
       <div class="product-actions">
+        <button
+          class="btn btn-info"
+          (click)="viewUserDetails(user)"
+          title="Voir les détails"
+        >
+          <i class="fas fa-eye"></i>
+          <span>Détails</span>
+        </button>
+
         <select
           [value]="user.status"
           (change)="updateUserStatus(user.id, $any($event.target).value)"
@@ -54,6 +163,22 @@
           <option value="SUSPENDU">Suspendu</option>
           <option value="BLOQUE">Bloqué</option>
         </select>
+
+        <button
+          class="btn btn-notification"
+          (click)="sendNotification(user)"
+          title="Envoyer une notification"
+        >
+          <i class="fas fa-bell"></i>
+        </button>
+
+        <button
+          class="btn btn-delete"
+          (click)="deleteUser(user)"
+          title="Supprimer l'utilisateur"
+        >
+          <i class="fas fa-trash"></i>
+        </button>
       </div>
     </div>
   </div>
@@ -65,17 +190,98 @@
       [disabled]="page <= 1"
       class="btn-page"
     >
-      Précédent
+      <i class="fas fa-chevron-left"></i> Précédent
     </button>
 
-    <span>Page {{ page }} sur {{ totalPages }}</span>
+    <div class="page-info">
+      <span>Page {{ page }} sur {{ totalPages }}</span>
+      <span class="total-count">({{ total }} utilisateurs)</span>
+    </div>
 
     <button
       (click)="onPageChange(page + 1)"
       [disabled]="page >= totalPages"
       class="btn-page"
     >
-      Suivant
+      Suivant <i class="fas fa-chevron-right"></i>
     </button>
+  </div>
+</div>
+
+<!-- Modal détails utilisateur -->
+<div *ngIf="selectedUser" class="user-details-modal" (click)="closeUserModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-user"></i> Détails de {{ selectedUser.nom }}</h3>
+      <button class="modal-close" (click)="closeUserModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="user-info-section">
+        <h4><i class="fas fa-id-card"></i> Informations personnelles</h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Nom complet:</label>
+            <span>{{ selectedUser.nom }}</span>
+          </div>
+          <div class="info-item">
+            <label>Email:</label>
+            <span>{{ selectedUser.email }}</span>
+          </div>
+          <div class="info-item">
+            <label>Téléphone:</label>
+            <span>{{ selectedUser.telephone }}</span>
+          </div>
+          <div class="info-item">
+            <label>Rôle:</label>
+            <span [ngClass]="getRoleClass(selectedUser.role)">{{ selectedUser.role }}</span>
+          </div>
+          <div class="info-item">
+            <label>Statut:</label>
+            <span [ngClass]="getStatusClass(selectedUser.status)">{{ selectedUser.status }}</span>
+          </div>
+          <div class="info-item">
+            <label>Date d'inscription:</label>
+            <span>{{ selectedUser.createdAt | date:'medium' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="user-stats-section">
+        <h4><i class="fas fa-chart-bar"></i> Statistiques</h4>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <i class="fas fa-box"></i>
+            <span>{{ selectedUser.productsCount || 0 }} produits publiés</span>
+          </div>
+          <div class="stat-item">
+            <i class="fas fa-eye"></i>
+            <span>245 vues totales</span>
+          </div>
+          <div class="stat-item">
+            <i class="fas fa-handshake"></i>
+            <span>12 contacts</span>
+          </div>
+          <div class="stat-item">
+            <i class="fas fa-star"></i>
+            <span>4.2/5 moyenne</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-warning" (click)="resetPassword(selectedUser)">
+        <i class="fas fa-key"></i> Réinitialiser MDP
+      </button>
+      <button class="btn btn-info" (click)="sendMessage(selectedUser)">
+        <i class="fas fa-envelope"></i> Envoyer message
+      </button>
+      <button class="btn btn-danger" (click)="deleteUser(selectedUser)">
+        <i class="fas fa-trash"></i> Supprimer compte
+      </button>
+    </div>
   </div>
 </div>

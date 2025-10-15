@@ -1,44 +1,285 @@
 <app-admin-header></app-admin-header>
 
 <div class="vip-settings-container">
-  <h1>⭐ Paramètres VIP</h1>
+  <h1>⭐ SYSTÈME VIP MANAGEMENT</h1>
 
-  <div *ngIf="loading" class="loading">Chargement des paramètres...</div>
-
-  <div *ngIf="!loading && settings.length === 0" class="no-settings">
-    Aucun paramètre trouvé
+  <!-- Navigation par onglets -->
+  <div class="tabs">
+    <button
+      *ngFor="let tab of tabs"
+      [class.active]="activeTab === tab.id"
+      (click)="setActiveTab(tab.id)"
+      class="tab-button">
+      {{ tab.label }}
+    </button>
   </div>
 
-  <div *ngIf="!loading && settings.length > 0" class="settings-list">
-    <div *ngFor="let setting of settings" class="setting-card">
-      <div class="setting-info">
-        <h3>{{ setting.cle }}</h3>
-        <p>{{ setting.description }}</p>
-        <small>Type: {{ setting.type }}</small>
+  <!-- Onglet Paramètres -->
+  <div *ngIf="activeTab === 'settings'" class="tab-content">
+    <h2>💰 Paramètres Système</h2>
+
+    <div *ngIf="loading" class="loading">Chargement des paramètres...</div>
+
+    <div *ngIf="!loading && settings.length === 0" class="no-settings">
+      Aucun paramètre trouvé
+    </div>
+
+    <div *ngIf="!loading && settings.length > 0" class="settings-list">
+      <div *ngFor="let setting of settings" class="setting-card">
+        <div class="setting-info">
+          <h3>{{ setting.cle }}</h3>
+          <p>{{ setting.description }}</p>
+          <small>Type: {{ setting.type }}</small>
+        </div>
+
+        <div class="setting-value">
+          <input
+            *ngIf="setting.type === 'STRING'"
+            type="text"
+            [value]="setting.valeur"
+            (blur)="updateSetting(setting.cle, $event.target.value)"
+            class="value-input"
+          />
+          <input
+            *ngIf="setting.type === 'NUMBER'"
+            type="number"
+            [value]="setting.valeur"
+            (blur)="updateSetting(setting.cle, $event.target.value)"
+            class="value-input"
+          />
+          <input
+            *ngIf="setting.type === 'BOOLEAN'"
+            type="checkbox"
+            [checked]="setting.valeur === 'true'"
+            (change)="updateSetting(setting.cle, $event.target.checked ? 'true' : 'false')"
+            class="value-checkbox"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Onglet Tarification -->
+  <div *ngIf="activeTab === 'pricing'" class="tab-content">
+    <h2>💰 Tarification</h2>
+
+    <div class="section-header">
+      <button (click)="showPricingForm = !showPricingForm" class="btn-primary">
+        {{ showPricingForm ? 'Annuler' : 'Ajouter une tarification' }}
+      </button>
+    </div>
+
+    <!-- Formulaire d'ajout de tarification -->
+    <div *ngIf="showPricingForm" class="form-card">
+      <h3>Nouvelle tarification</h3>
+      <form (ngSubmit)="createPricing()" #pricingForm="ngForm">
+        <div class="form-group">
+          <label>Durée (jours):</label>
+          <input type="number" [(ngModel)]="newPricing.duree" name="duree" required min="1">
+        </div>
+        <div class="form-group">
+          <label>Prix:</label>
+          <input type="number" [(ngModel)]="newPricing.prix" name="prix" required min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Réduction pour achats multiples (%):</label>
+          <input type="number" [(ngModel)]="newPricing.reductionPourcent" name="reductionPourcent" min="0" max="100">
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" [disabled]="!pricingForm.valid">Créer</button>
+          <button type="button" (click)="showPricingForm = false" class="btn-secondary">Annuler</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Liste des tarifications -->
+    <div class="pricing-list">
+      <div *ngFor="let pricing of pricingList" class="pricing-card">
+        <div class="pricing-info">
+          <h3>{{ pricing.duree }} jours</h3>
+          <p class="price">{{ pricing.prix }} {{ pricing.devise }}</p>
+          <p *ngIf="pricing.reductionPourcent" class="discount">
+            Réduction: {{ pricing.reductionPourcent }}%
+          </p>
+        </div>
+        <div class="pricing-actions">
+          <label class="toggle">
+            <input
+              type="checkbox"
+              [checked]="pricing.estActif"
+              (change)="updatePricingStatus(pricing.id, $event.target.checked)">
+            Actif
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Onglet Codes Promo -->
+  <div *ngIf="activeTab === 'promo'" class="tab-content">
+    <h2>🎫 Codes Promo</h2>
+
+    <div class="section-header">
+      <button (click)="showPromoForm = !showPromoForm" class="btn-primary">
+        {{ showPromoForm ? 'Annuler' : 'Créer un code promo' }}
+      </button>
+    </div>
+
+    <!-- Formulaire de création de code promo -->
+    <div *ngIf="showPromoForm" class="form-card">
+      <h3>Nouveau code promo</h3>
+      <form (ngSubmit)="createPromoCode()" #promoForm="ngForm">
+        <div class="form-group">
+          <label>Code:</label>
+          <input type="text" [(ngModel)]="newPromoCode.code" name="code" required>
+        </div>
+        <div class="form-group">
+          <label>Description:</label>
+          <input type="text" [(ngModel)]="newPromoCode.description" name="description">
+        </div>
+        <div class="form-group">
+          <label>Réduction (%):</label>
+          <input type="number" [(ngModel)]="newPromoCode.reductionPourcent" name="reductionPourcent" min="0" max="100">
+        </div>
+        <div class="form-group">
+          <label>Réduction fixe:</label>
+          <input type="number" [(ngModel)]="newPromoCode.reductionMontant" name="reductionMontant" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Jours bonus:</label>
+          <input type="number" [(ngModel)]="newPromoCode.dureeBonus" name="dureeBonus" min="0">
+        </div>
+        <div class="form-group">
+          <label>Utilisations max:</label>
+          <input type="number" [(ngModel)]="newPromoCode.utilisationsMax" name="utilisationsMax" min="1">
+        </div>
+        <div class="form-group">
+          <label>Date d'expiration:</label>
+          <input type="datetime-local" [(ngModel)]="newPromoCode.dateExpiration" name="dateExpiration">
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" [disabled]="!promoForm.valid">Créer</button>
+          <button type="button" (click)="showPromoForm = false" class="btn-secondary">Annuler</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Liste des codes promo -->
+    <div class="promo-list">
+      <div *ngFor="let promo of promoCodes" class="promo-card">
+        <div class="promo-info">
+          <h3>{{ promo.code }}</h3>
+          <p>{{ promo.description }}</p>
+          <div class="promo-details">
+            <span *ngIf="promo.reductionPourcent">Réduction: {{ promo.reductionPourcent }}%</span>
+            <span *ngIf="promo.reductionMontant">Réduction: {{ promo.reductionMontant }} XOF</span>
+            <span *ngIf="promo.dureeBonus">Bonus: {{ promo.dureeBonus }} jours</span>
+            <span>Utilisations: {{ promo.utilisationsActuelles }}/{{ promo.utilisationsMax || '∞' }}</span>
+          </div>
+        </div>
+        <div class="promo-actions">
+          <label class="toggle">
+            <input
+              type="checkbox"
+              [checked]="promo.estActif"
+              (change)="updatePromoStatus(promo.id, $event.target.checked)">
+            Actif
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Onglet Abonnements -->
+  <div *ngIf="activeTab === 'subscriptions'" class="tab-content">
+    <h2>🎯 Gestion des Abonnements</h2>
+
+    <div class="section-header">
+      <button (click)="showSubscriptionForm = !showSubscriptionForm" class="btn-primary">
+        {{ showSubscriptionForm ? 'Annuler' : 'Créer un abonnement' }}
+      </button>
+    </div>
+
+    <!-- Formulaire de création d'abonnement -->
+    <div *ngIf="showSubscriptionForm" class="form-card">
+      <h3>Nouvel abonnement VIP</h3>
+      <form (ngSubmit)="createSubscription()" #subscriptionForm="ngForm">
+        <div class="form-group">
+          <label>ID Utilisateur:</label>
+          <input type="text" [(ngModel)]="newSubscription.utilisateurId" name="utilisateurId" required>
+        </div>
+        <div class="form-group">
+          <label>Durée (jours):</label>
+          <input type="number" [(ngModel)]="newSubscription.duree" name="duree" required min="1">
+        </div>
+        <div class="form-group">
+          <label>Code promo (optionnel):</label>
+          <input type="text" [(ngModel)]="newSubscription.codePromo" name="codePromo">
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" [disabled]="!subscriptionForm.valid">Créer</button>
+          <button type="button" (click)="showSubscriptionForm = false" class="btn-secondary">Annuler</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Liste des abonnements -->
+    <div class="subscriptions-list">
+      <div *ngFor="let sub of subscriptions" class="subscription-card">
+        <div class="subscription-info">
+          <h3>{{ sub.utilisateur.prenom }} {{ sub.utilisateur.nom }}</h3>
+          <p>{{ sub.utilisateur.email }}</p>
+          <div class="subscription-details">
+            <span>Durée: {{ sub.duree }} jours</span>
+            <span>Prix: {{ sub.prixTotal }} {{ sub.devise }}</span>
+            <span>Statut: {{ sub.statut }}</span>
+            <span *ngIf="sub.codePromo">Code: {{ sub.codePromo }}</span>
+          </div>
+          <small>Début: {{ sub.dateDebut | date:'short' }} - Fin: {{ sub.dateFin | date:'short' }}</small>
+        </div>
+        <div class="subscription-actions">
+          <button *ngIf="sub.statut === 'ACTIF'" (click)="extendSubscription(sub.id)" class="btn-secondary">
+            Étendre
+          </button>
+          <button *ngIf="sub.statut === 'ACTIF'" (click)="refundSubscription(sub.id)" class="btn-danger">
+            Rembourser
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Onglet Analytics -->
+  <div *ngIf="activeTab === 'analytics'" class="tab-content">
+    <h2>📊 Analytics VIP</h2>
+
+    <div *ngIf="analyticsLoading" class="loading">Chargement des statistiques...</div>
+
+    <div *ngIf="!analyticsLoading && analytics" class="analytics-grid">
+      <div class="metric-card">
+        <h3>💰 Revenus Totaux</h3>
+        <p class="metric-value">{{ analytics.totalRevenue }} XOF</p>
+        <p class="metric-subtitle">Ce mois: {{ analytics.monthlyRevenue }} XOF</p>
       </div>
 
-      <div class="setting-value">
-        <input
-          *ngIf="setting.type === 'STRING'"
-          type="text"
-          [value]="setting.valeur"
-          (blur)="updateSetting(setting.cle, $event.target.value)"
-          class="value-input"
-        />
-        <input
-          *ngIf="setting.type === 'NUMBER'"
-          type="number"
-          [value]="setting.valeur"
-          (blur)="updateSetting(setting.cle, $event.target.value)"
-          class="value-input"
-        />
-        <input
-          *ngIf="setting.type === 'BOOLEAN'"
-          type="checkbox"
-          [checked]="setting.valeur === 'true'"
-          (change)="updateSetting(setting.cle, $event.target.checked ? 'true' : 'false')"
-          class="value-checkbox"
-        />
+      <div class="metric-card">
+        <h3>👥 Abonnements Actifs</h3>
+        <p class="metric-value">{{ analytics.activeSubscriptions }}</p>
+      </div>
+
+      <div class="metric-card">
+        <h3>📈 Taux de Conversion VIP</h3>
+        <p class="metric-value">{{ analytics.vipConversionRate }}%</p>
+      </div>
+
+      <div class="metric-card">
+        <h3>⏱️ Durée Moyenne</h3>
+        <p class="metric-value">{{ analytics.avgSubscriptionDuration }} jours</p>
+      </div>
+
+      <div class="metric-card">
+        <h3>📉 Taux de Désabonnement</h3>
+        <p class="metric-value">{{ analytics.churnRate }}%</p>
       </div>
     </div>
   </div>

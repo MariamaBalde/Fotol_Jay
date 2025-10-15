@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Role } from "@prisma/client";
 import type { Utilisateur } from "@prisma/client";
 import prisma from "../../config/database.js";
 
@@ -17,6 +17,7 @@ export class AuthRepository {
       nom: string;
       telephone: string;
       localisation?: string;
+      role?: Role;
     }
   ): Promise<Utilisateur> {
     return await prisma.utilisateur.create({

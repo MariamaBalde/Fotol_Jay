@@ -4,11 +4,12 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { ProduitsService } from '../../../core/services/produits.service';
 import { Produit, ReponseProduits } from '../../../core/models/produit.model';
 import { Observable, Subscription } from 'rxjs';
+import { NavbarComponent } from '../../shared/navbar/navbar.component';
 
 @Component({
   selector: 'app-mes-produits',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NavbarComponent],
   templateUrl: './mes-produits.html',
   styleUrls: ['./mes-produits.css']
 })
@@ -136,6 +137,39 @@ export class MesProduitsComponent implements OnInit, OnDestroy {
     // Sinon, construire l'URL complète
     const baseUrl = 'http://localhost:3000'; // Ajuster selon votre configuration
     return `${baseUrl}${cheminRelatif}`;
+  }
+
+  filtrerParStatut(event: any): void {
+    // Pour l'instant, on ne fait que recharger (le filtrage côté serveur n'est pas implémenté)
+    this.chargerMesProduits();
+  }
+
+  obtenirIconeStatut(statut: string): string {
+    switch (statut) {
+      case 'EN_ATTENTE': return 'fas fa-clock';
+      case 'APPROUVE': return 'fas fa-check-circle';
+      case 'REFUSE': return 'fas fa-times-circle';
+      case 'EXPIRE': return 'fas fa-hourglass-end';
+      default: return 'fas fa-question-circle';
+    }
+  }
+
+  calculerJoursRestants(produit: Produit): number {
+    if (produit.statut !== 'APPROUVE' || !produit.dateExpiration) return 0;
+    const maintenant = new Date();
+    const expiration = new Date(produit.dateExpiration);
+    const diff = expiration.getTime() - maintenant.getTime();
+    return Math.ceil(diff / (1000 * 3600 * 24));
+  }
+
+  calculerProgressionExpiration(produit: Produit): number {
+    if (produit.statut !== 'APPROUVE' || !produit.dateExpiration) return 0;
+    const maintenant = new Date();
+    const expiration = new Date(produit.dateExpiration);
+    const creation = new Date(produit.dateCreation);
+    const total = expiration.getTime() - creation.getTime();
+    const ecoule = maintenant.getTime() - creation.getTime();
+    return Math.max(0, Math.min(100, (ecoule / total) * 100));
   }
 
   handleImageError(event: any): void {

@@ -27,6 +27,15 @@ export class AuthController {
       return res.status(401).json({ error: error.message });
     }
   }
+
+  async creerAdministrateur(req: Request, res: Response) {
+    try {
+      const result = await this.authService.creerAdministrateur(req.body);
+      return res.status(201).json(result);
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
 }
 
 

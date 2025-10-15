@@ -39,9 +39,9 @@ export declare class ProduitsRepository {
             id: string;
             dateCreation: Date;
             url: string;
+            produitId: string;
             urlMiniature: string | null;
             ordre: number;
-            produitId: string;
         }[];
     } & {
         id: string;
@@ -80,9 +80,9 @@ export declare class ProduitsRepository {
             id: string;
             dateCreation: Date;
             url: string;
+            produitId: string;
             urlMiniature: string | null;
             ordre: number;
-            produitId: string;
         }[];
     } & {
         id: string;
@@ -116,9 +116,9 @@ export declare class ProduitsRepository {
                 id: string;
                 dateCreation: Date;
                 url: string;
+                produitId: string;
                 urlMiniature: string | null;
                 ordre: number;
-                produitId: string;
             }[];
         } & {
             id: string;
@@ -156,9 +156,9 @@ export declare class ProduitsRepository {
             id: string;
             dateCreation: Date;
             url: string;
+            produitId: string;
             urlMiniature: string | null;
             ordre: number;
-            produitId: string;
         }[];
     } & {
         id: string;
@@ -228,38 +228,20 @@ export declare class ProduitsRepository {
         utilisateurId: string;
         dateExpiration: Date;
     }>;
-    listerEnAttente(): Promise<({
-        utilisateur: {
-            id: string;
-            email: string;
-            prenom: string;
-            nom: string;
-        };
-        images: {
-            id: string;
-            dateCreation: Date;
-            url: string;
-            urlMiniature: string | null;
-            ordre: number;
-            produitId: string;
-        }[];
-    } & {
+    listerEnAttente(): Promise<{
         id: string;
-        localisation: string | null;
-        dateCreation: Date;
-        dateMiseAJour: Date;
         titre: string;
         description: string;
-        prix: number;
         categorie: string;
         etat: string;
-        statut: import("@prisma/client").$Enums.StatutProduit;
-        raisonRefus: string | null;
+        prix: number;
+        vendeurNom: string;
+        vendeurTelephone: string;
+        vendeurEmail: string;
+        dateCreation: string;
         vues: number;
-        nombreContacts: number;
-        utilisateurId: string;
-        dateExpiration: Date;
-    })[]>;
+        images: string[];
+    }[]>;
     moderer(id: string, statut: StatutProduit, raisonRefus?: string): Promise<{
         utilisateur: {
             id: string;
@@ -272,6 +254,7 @@ export declare class ProduitsRepository {
             localisation: string | null;
             role: import("@prisma/client").$Enums.Role;
             finVip: Date | null;
+            statutModerateur: string | null;
             dateCreation: Date;
             dateMiseAJour: Date;
         };

@@ -1,13 +1,7 @@
-<app-admin-header></app-admin-header>
-
 <div class="admin-dashboard">
-  <div class="dashboard-header">
-    <h1>🖥️ Panel Administrateur</h1>
-    <p class="subtitle">Tableau de bord FOTOLJAY</p>
-    <button class="refresh-btn" (click)="refresh()" [disabled]="loading">
-      <i class="fas fa-sync-alt"></i> Actualiser
-    </button>
-  </div>
+  <app-sidebar></app-sidebar>
+  <div class="main-content">
+    <app-admin-header></app-admin-header>
 
   <!-- État de chargement -->
   <div class="loading-state" *ngIf="loading">
@@ -20,44 +14,12 @@
     <div class="error-icon">⚠️</div>
     <h3>Erreur de chargement</h3>
     <p>{{ error }}</p>
-    <button class="btn-primary" (click)="refresh()">Réessayer</button>
+    <button class="btn-primary" (click)="loadDashboardData()">Réessayer</button>
   </div>
 
   <!-- Contenu principal -->
   <div class="dashboard-content" *ngIf="!loading && !error && stats">
 
-    <!-- Alertes -->
-    <div class="alerts-section" *ngIf="alerts.length > 0">
-      <h2>🚨 Alertes</h2>
-      <div class="alerts-list">
-        <div
-          class="alert-item"
-          [ngClass]="alert.type"
-          *ngFor="let alert of alerts"
-        >
-          <div class="alert-content">
-            <h4>{{ alert.title }}</h4>
-            <p>{{ alert.message }}</p>
-          </div>
-          <div class="alert-actions">
-            <button
-              *ngIf="alert.actionUrl"
-              class="btn-small"
-              (click)="navigateTo(alert.actionUrl)"
-            >
-              Voir
-            </button>
-            <button
-              class="btn-small dismiss"
-              (click)="dismissAlert(alert.id)"
-              title="Fermer"
-            >
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Statistiques principales -->
     <div class="stats-grid">

@@ -7,6 +7,7 @@ import { Produit, FiltresProduits } from '../../../core/models/produit.model';
 import { Router } from '@angular/router';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner';
 import { ProductCardComponent } from '../../../shared/components/product-card/product-card.component';
+import { NavbarComponent } from '../../shared/navbar/navbar.component';
 
 @Component({
   selector: 'app-liste-produits',
@@ -16,7 +17,8 @@ import { ProductCardComponent } from '../../../shared/components/product-card/pr
     CommonModule,
     FormsModule,
     LoadingSpinnerComponent,
-    ProductCardComponent
+    ProductCardComponent,
+    NavbarComponent
   ],
   standalone: true,
 })
@@ -129,6 +131,31 @@ export class ListeProduitsComponent implements OnInit {
     } else {
       this.router.navigate(['/auth/login']);
     }
+  }
+
+  appliquerPrixMin(): void {
+    this.filtres.page = 1;
+    this.chargerProduits();
+  }
+
+  appliquerPrixMax(): void {
+    this.filtres.page = 1;
+    this.chargerProduits();
+  }
+
+  reinitialiserFiltres(): void {
+    this.filtres = {
+      page: 1,
+      limite: 12,
+    };
+    this.rechercheTexte = '';
+    this.chargerProduits();
+  }
+
+  trierProduits(event: any): void {
+    const valeur = event.target.value;
+    // Pour l'instant, on ne fait que recharger (le tri côté serveur n'est pas implémenté)
+    this.chargerProduits();
   }
 
   obtenirTableauPages(): number[] {

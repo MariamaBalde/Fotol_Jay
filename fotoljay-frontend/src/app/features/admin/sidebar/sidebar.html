@@ -1,0 +1,98 @@
+<div class="sidebar" [class.collapsed]="isCollapsed">
+  <div class="sidebar-header">
+    <button class="toggle-btn" (click)="toggleSidebar()">
+      <i class="fas" [class.fa-chevron-left]="!isCollapsed" [class.fa-chevron-right]="isCollapsed"></i>
+    </button>
+    <div class="logo" *ngIf="!isCollapsed">
+      <i class="fas fa-cog"></i>
+      <span>Admin</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <ul class="nav-list">
+      <li class="nav-item">
+        <button
+          class="nav-link"
+          [class.active]="isActiveRoute('/admin/dashboard')"
+          (click)="navigateTo('/admin/dashboard')"
+          [title]="isCollapsed ? 'Dashboard' : ''"
+        >
+          <i class="fas fa-tachometer-alt"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Dashboard</span>
+        </button>
+      </li>
+
+      <li class="nav-item">
+        <button
+          class="nav-link"
+          [class.active]="isActiveRoute('/admin/moderation')"
+          (click)="navigateTo('/admin/moderation')"
+          [title]="isCollapsed ? 'Modération' : ''"
+        >
+          <i class="fas fa-shield-alt"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Modération</span>
+        </button>
+      </li>
+
+      <li class="nav-item">
+        <button
+          class="nav-link"
+          [class.active]="isActiveRoute('/admin/users')"
+          (click)="navigateTo('/admin/users')"
+          [title]="isCollapsed ? 'Utilisateurs' : ''"
+        >
+          <i class="fas fa-users"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Utilisateurs</span>
+        </button>
+      </li>
+
+      <li class="nav-item">
+        <button
+          class="nav-link"
+          [class.active]="isActiveRoute('/admin/reports')"
+          (click)="navigateTo('/admin/reports')"
+          [title]="isCollapsed ? 'Signalements' : ''"
+        >
+          <i class="fas fa-flag"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Signalements</span>
+        </button>
+      </li>
+
+      <li class="nav-item">
+        <button
+          class="nav-link"
+          [class.active]="isActiveRoute('/admin/moderators')"
+          (click)="navigateTo('/admin/moderators')"
+          [title]="isCollapsed ? 'Modérateurs' : ''"
+        >
+          <i class="fas fa-user-shield"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Modérateurs</span>
+        </button>
+      </li>
+
+      <li class="nav-item">
+        <button
+          class="nav-link"
+          [class.active]="isActiveRoute('/admin/vip-settings')"
+          (click)="navigateTo('/admin/vip-settings')"
+          [title]="isCollapsed ? 'VIP' : ''"
+        >
+          <i class="fas fa-star"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">VIP</span>
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button
+      class="logout-btn"
+      (click)="logout()"
+      [title]="isCollapsed ? 'Déconnexion' : ''"
+    >
+      <i class="fas fa-sign-out-alt"></i>
+      <span class="nav-text" *ngIf="!isCollapsed">Déconnexion</span>
+    </button>
+  </div>
+</div>

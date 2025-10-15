@@ -7,9 +7,15 @@ const router = Router();
 const authController = new AuthController();
 
 router.post(
-  '/register',
+  '/inscription',
   ValidateRequest(registerSchema),
   authController.register.bind(authController)
+);
+
+router.post(
+  '/admin/creer-admin',
+  ValidateRequest(registerSchema),
+  authController.creerAdministrateur.bind(authController)
 );
 
 router.post(

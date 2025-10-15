@@ -2,10 +2,113 @@
 
 <div class="moderation-container">
   <div class="header">
-    <h1>🛡️ Modération des Produits</h1>
-    <p>Gérez les produits en attente de validation</p>
+    <h1>🎯 Modération Centralisée</h1>
+    <p>Gérez efficacement les produits en attente de validation</p>
   </div>
 
+  <!-- Filtres et statistiques -->
+  <div class="moderation-controls">
+    <div class="filters-section">
+      <div class="filter-group">
+        <label><i class="fas fa-filter"></i> Catégorie:</label>
+        <select [(ngModel)]="selectedCategory" (change)="applyFilters()" class="filter-select">
+          <option value="">Toutes les catégories</option>
+          <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label><i class="fas fa-clock"></i> Tri:</label>
+        <select [(ngModel)]="sortOrder" (change)="applyFilters()" class="filter-select">
+          <option value="date-desc">Plus récent</option>
+          <option value="date-asc">Plus ancien</option>
+          <option value="price-desc">Prix décroissant</option>
+          <option value="price-asc">Prix croissant</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="stats-section">
+      <div class="stat-item">
+        <i class="fas fa-box"></i>
+        <span>{{ pendingProducts.length }} en attente</span>
+      </div>
+      <div class="stat-item">
+        <i class="fas fa-clock"></i>
+        <span>{{ avgModerationTime }}ms moyen</span>
+      </div>
+      <div class="stat-item">
+        <i class="fas fa-chart-pie"></i>
+        <span>{{ rejectionRate }}% refus</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section statistiques détaillées -->
+  <div class="stats-dashboard" *ngIf="moderationStats">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-tachometer-alt"></i>
+        </div>
+        <div class="stat-content">
+          <h4>Temps Moyen</h4>
+          <p class="stat-value">{{ moderationStats.avgTime }}ms</p>
+          <span class="stat-trend positive">↗️ +5%</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-tags"></i>
+        </div>
+        <div class="stat-content">
+          <h4>Catégorie la plus active</h4>
+          <p class="stat-value">{{ moderationStats.topCategory || 'N/A' }}</p>
+          <span class="stat-count">{{ moderationStats.topCategoryCount || 0 }} produits</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-times-circle"></i>
+        </div>
+        <div class="stat-content">
+          <h4>Taux de refus</h4>
+          <p class="stat-value">{{ moderationStats.rejectionRate }}%</p>
+          <span class="stat-trend negative">↗️ +2%</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-calendar-week"></i>
+        </div>
+        <div class="stat-content">
+          <h4>Cette semaine</h4>
+          <p class="stat-value">{{ moderationStats.weeklyModerated }}</p>
+          <span class="stat-label">modérés</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Graphique de répartition par catégorie -->
+    <div class="category-chart" *ngIf="moderationStats.categoryBreakdown && moderationStats.categoryBreakdown.length > 0">
+      <h4><i class="fas fa-chart-bar"></i> Répartition par catégorie</h4>
+      <div class="chart-container">
+        <div class="chart-bar" *ngFor="let category of moderationStats.categoryBreakdown">
+          <div class="bar-label">{{ category.name }}</div>
+          <div class="bar-container">
+            <div
+              class="bar-fill"
+              [style.width.%]="(category.count / moderationStats.totalModerated) * 100"
+            ></div>
+          </div>
+          <div class="bar-value">{{ category.count }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div *ngIf="loading" class="loading-container">
     <div class="spinner"></div>
@@ -13,37 +116,51 @@
   </div>
 
   <div *ngIf="!loading && !error" class="products-grid">
-    <div *ngIf="pendingProducts.length === 0" class="empty-state">
+    <div *ngIf="filteredProducts.length === 0" class="empty-state">
       <div class="empty-icon">✅</div>
-      <h3>Aucun produit en attente</h3>
-      <p>Tous les produits ont été modérés</p>
+      <h3>Aucun produit trouvé</h3>
+      <p *ngIf="pendingProducts.length === 0">Tous les produits ont été modérés</p>
+      <p *ngIf="pendingProducts.length > 0">Aucun produit ne correspond aux filtres</p>
     </div>
 
-    <div *ngFor="let product of pendingProducts" class="product-card">
+    <div *ngFor="let product of filteredProducts" class="product-card" [class.selected]="selectedProduct?.id === product.id">
       <div class="product-header">
         <div class="product-info">
           <h3>{{ product.titre }}</h3>
           <p class="product-meta">
-            Par {{ product.vendeurNom }} ({{ product.vendeurTelephone }})
-            • {{ product.categorie }}
-            • {{ product.prix }} FCFA
+            <i class="fas fa-user"></i> {{ product.vendeurNom }} •
+            <i class="fas fa-phone"></i> {{ product.vendeurTelephone }} •
+            <i class="fas fa-tag"></i> {{ product.categorie }} •
+            <i class="fas fa-coins"></i> {{ product.prix }} FCFA
           </p>
           <p class="product-description">{{ product.description }}</p>
+          <p class="product-date">
+            <i class="fas fa-calendar"></i> {{ product.dateCreation | date:'short' }}
+          </p>
         </div>
         <div class="product-status">
-          <span class="status-badge status-pending">En attente</span>
+          <span class="status-badge status-pending">
+            <i class="fas fa-clock"></i> En attente
+          </span>
         </div>
       </div>
 
       <div class="product-images" *ngIf="product.images && product.images.length > 0">
         <div class="images-grid">
-          <img
-            *ngFor="let image of product.images"
-            [src]="getImageUrl(image)"
-            [alt]="product.titre"
-            class="product-image"
-            (click)="openImageModal(image)"
-          />
+          <div
+            *ngFor="let image of product.images; let i = index"
+            class="image-container"
+            (click)="openDetailedModal(product, i)"
+          >
+            <img
+              [src]="getImageUrl(image)"
+              [alt]="product.titre"
+              class="product-image"
+            />
+            <div class="image-overlay">
+              <i class="fas fa-search-plus"></i>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -55,22 +172,145 @@
           title="Approuver le produit"
         >
           <i class="fas fa-check"></i>
+          <span>Approuver</span>
         </button>
 
         <button
-          class="btn btn-danger"
-          (click)="rejectProduct(product.id)"
+          class="btn btn-warning"
+          (click)="openRejectModal(product)"
           [disabled]="moderatingProductId === product.id"
-          title="Rejeter le produit"
+          title="Rejeter avec raison"
         >
           <i class="fas fa-times"></i>
+          <span>Rejeter</span>
+        </button>
+
+        <button
+          class="btn btn-info"
+          (click)="openDetailedModal(product, 0)"
+          title="Révision détaillée"
+        >
+          <i class="fas fa-search"></i>
+          <span>Détaillé</span>
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Modal pour voir les images en grand -->
+<!-- Modal de rejet -->
+<div *ngIf="showRejectModal" class="reject-modal-overlay" (click)="closeRejectModal()">
+  <div class="reject-modal" (click)="$event.stopPropagation()">
+    <div class="reject-modal-header">
+      <i class="fas fa-times-circle reject-icon"></i>
+      <h3>Motif de rejet</h3>
+    </div>
+
+    <div class="reject-modal-body">
+      <p><strong>Produit:</strong> {{ productToReject?.titre }}</p>
+      <p><strong>Vendeur:</strong> {{ productToReject?.vendeurNom }}</p>
+
+      <div class="reason-section">
+        <label>Raison du rejet (obligatoire):</label>
+        <select [(ngModel)]="rejectReason" class="reason-select">
+          <option value="">Sélectionner une raison</option>
+          <option value="Qualité photo insuffisante">📸 Qualité photo insuffisante</option>
+          <option value="Produit non conforme">🚫 Produit non conforme</option>
+          <option value="Informations manquantes">📝 Informations manquantes</option>
+          <option value="Contenu inapproprié">⚠️ Contenu inapproprié</option>
+          <option value="Prix incorrect">💰 Prix incorrect</option>
+          <option value="Catégorie incorrecte">🏷️ Catégorie incorrecte</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="reject-modal-actions">
+      <button class="btn-cancel" (click)="closeRejectModal()">
+        <i class="fas fa-times"></i> Annuler
+      </button>
+      <button class="btn-reject" (click)="confirmReject()" [disabled]="!rejectReason">
+        <i class="fas fa-times"></i> Rejeter
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de révision détaillée -->
+<div *ngIf="showDetailedModal" class="detailed-modal-overlay" (click)="closeDetailedModal()">
+  <div class="detailed-modal" (click)="$event.stopPropagation()">
+    <div class="detailed-modal-header">
+      <div class="product-info">
+        <h3>{{ detailedProduct?.titre }}</h3>
+        <p><i class="fas fa-user"></i> {{ detailedProduct?.vendeurNom }} • <i class="fas fa-tag"></i> {{ detailedProduct?.categorie }}</p>
+      </div>
+      <button class="modal-close" (click)="closeDetailedModal()" title="Fermer">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="detailed-modal-body">
+      <!-- Galerie d'images -->
+      <div class="image-gallery" *ngIf="detailedProduct && detailedProduct.images && detailedProduct.images.length > 0">
+        <div class="main-image-container">
+          <button class="nav-btn prev-btn" (click)="prevImage()" [disabled]="currentImageIndex === 0">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+
+          <div class="main-image">
+            <img [src]="getImageUrl(detailedProduct.images[currentImageIndex])" [alt]="detailedProduct.titre" />
+            <div class="image-counter">{{ currentImageIndex + 1 }} / {{ detailedProduct.images.length }}</div>
+          </div>
+
+          <button class="nav-btn next-btn" (click)="nextImage()" [disabled]="currentImageIndex === detailedProduct.images.length - 1">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+
+        <div class="thumbnail-strip" *ngIf="detailedProduct.images.length > 1">
+          <div
+            *ngFor="let image of detailedProduct.images; let i = index"
+            class="thumbnail"
+            [class.active]="i === currentImageIndex"
+            (click)="currentImageIndex = i"
+          >
+            <img [src]="getImageUrl(image)" [alt]="detailedProduct.titre" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Informations détaillées -->
+      <div class="product-details">
+        <div class="detail-section">
+          <h4><i class="fas fa-info-circle"></i> Description</h4>
+          <p>{{ detailedProduct?.description }}</p>
+        </div>
+
+        <div class="detail-section">
+          <h4><i class="fas fa-coins"></i> Prix et État</h4>
+          <p><strong>Prix:</strong> {{ detailedProduct?.prix }} FCFA</p>
+          <p><strong>État:</strong> {{ detailedProduct?.etat }}</p>
+        </div>
+
+        <div class="detail-section">
+          <h4><i class="fas fa-calendar"></i> Historique</h4>
+          <p><strong>Publié le:</strong> {{ detailedProduct?.dateCreation | date:'medium' }}</p>
+          <p><strong>Contact:</strong> {{ detailedProduct?.vendeurTelephone }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="detailed-modal-actions">
+      <button class="btn-approve" (click)="approveProduct(detailedProduct!.id); closeDetailedModal()">
+        <i class="fas fa-check"></i> Approuver
+      </button>
+      <button class="btn-reject" (click)="openRejectModal(detailedProduct!); closeDetailedModal()">
+        <i class="fas fa-times"></i> Rejeter
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour voir les images en grand (legacy) -->
 <div *ngIf="selectedImage" class="image-modal" (click)="closeImageModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <button class="modal-close" (click)="closeImageModal()" title="Fermer"><i class="fas fa-times"></i></button>

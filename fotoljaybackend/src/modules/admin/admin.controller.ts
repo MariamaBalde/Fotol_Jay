@@ -132,6 +132,7 @@ export class AdminController {
         search = '',
         role = '',
         status = '',
+        sortBy = 'date-desc',
         page = 1,
         limit = 20
       } = req.query;
@@ -140,20 +141,58 @@ export class AdminController {
 
       const where: any = {};
 
+      // Recherche par nom, prénom, email, téléphone
       if (search) {
         where.OR = [
-          { nom: { contains: search as string, mode: 'insensitive' } },
-          { prenom: { contains: search as string, mode: 'insensitive' } },
-          { email: { contains: search as string, mode: 'insensitive' } }
+          { nom: { contains: search as string } },
+          { prenom: { contains: search as string } },
+          { email: { contains: search as string } },
+          { telephone: { contains: search as string } }
         ];
       }
 
+      // Filtre par rôle
       if (role) {
         where.role = role;
       }
 
+      // Filtre par statut (pour les utilisateurs normaux, on utilise un champ fictif)
+      // TODO: Implémenter un vrai système de statut utilisateur dans le schéma Prisma
+      if (status && status !== '') {
+        // Pour l'instant, on simule - tous les utilisateurs sont "ACTIF"
+        // Dans un vrai système, on aurait un champ statutUtilisateur
+      }
+
+      // Logique de tri
+      let orderBy: any = { dateCreation: 'desc' }; // Tri par défaut
+
+      switch (sortBy) {
+        case 'date-desc':
+          orderBy = { dateCreation: 'desc' };
+          break;
+        case 'date-asc':
+          orderBy = { dateCreation: 'asc' };
+          break;
+        case 'products-desc':
+          // Pour trier par nombre de produits, on doit faire une requête séparée
+          // et trier en JavaScript
+          break;
+        case 'products-asc':
+          // Pour trier par nombre de produits, on doit faire une requête séparée
+          // et trier en JavaScript
+          break;
+        case 'name-asc':
+          orderBy = [{ nom: 'asc' }, { prenom: 'asc' }];
+          break;
+        case 'name-desc':
+          orderBy = [{ nom: 'desc' }, { prenom: 'desc' }];
+          break;
+        default:
+          orderBy = { dateCreation: 'desc' };
+      }
+
       // Compter le nombre de produits par utilisateur
-      const users = await prisma.utilisateur.findMany({
+      let users = await prisma.utilisateur.findMany({
         where,
         select: {
           id: true,
@@ -171,12 +210,17 @@ export class AdminController {
         },
         skip,
         take: Number(limit),
-        orderBy: {
-          dateCreation: 'desc'
-        }
+        orderBy
       });
 
       const total = await prisma.utilisateur.count({ where });
+
+      // Tri par nombre de produits si demandé (car Prisma ne supporte pas le tri par _count)
+      if (sortBy === 'products-desc') {
+        users = users.sort((a, b) => b._count.produits - a._count.produits);
+      } else if (sortBy === 'products-asc') {
+        users = users.sort((a, b) => a._count.produits - b._count.produits);
+      }
 
       // Transformer les données pour le frontend
       const transformedUsers = users.map(user => ({
@@ -185,7 +229,7 @@ export class AdminController {
         email: user.email,
         telephone: user.telephone,
         role: user.role,
-        status: 'ACTIF', // TODO: Implémenter système de statut
+        status: 'ACTIF', // TODO: Implémenter système de statut utilisateur
         productsCount: user._count.produits,
         createdAt: user.dateCreation.toISOString()
       }));
@@ -881,6 +925,425 @@ export class AdminController {
 
     } catch (error) {
       console.error('Erreur mise à jour paramètre VIP:', error);
+      res.status(500).json({ message: 'Erreur serveur' });
+    }
+  }
+
+  // Tarification VIP
+  async getVipPricing(req: Request, res: Response) {
+    try {
+      const pricing = await prisma.tarificationVIP.findMany({
+        where: { estActif: true },
+        orderBy: { duree: 'asc' }
+      });
+
+      res.json(pricing);
+
+    } catch (error) {
+      console.error('Erreur récupération tarification VIP:', error);
+      res.status(500).json({ message: 'Erreur serveur' });
+    }
+  }
+
+  async createVipPricing(req: Request, res: Response) {
+    try {
+      const { duree, prix, devise, reductionPourcent } = req.body;
+
+      const pricing = await prisma.tarificationVIP.create({
+        data: {
+          duree,
+          prix,
+          devise: devise || 'XOF',
+          reductionPourcent
+        }
+      });
+
+      res.status(201).json(pricing);
+
+    } catch (error) {
+      console.error('Erreur création tarification VIP:', error);
+      res.status(500).json({ message: 'Erreur serveur' });
+    }
+  }
+
+  async updateVipPricing(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { prix, reductionPourcent, estActif } = req.body;
+
+      const pricing = await prisma.tarificationVIP.update({
+        where: { id },
+        data: {
+          prix,
+          reductionPourcent,
+          estActif
+        }
+      });
+
+      // Historiser le changement de prix
+      if (prix !== pricing.prix) {
+        await prisma.historiquePrixVIP.create({
+          data: {
+            duree: pricing.duree,
+            ancienPrix: pricing.prix,
+            nouveauPrix: prix,
+            devise: pricing.devise,
+            modifieParId: (req as any).user.id
+          }
+        });
+      }
+
+      res.json(pricing);
+
+    } catch (error) {
+      console.error('Erreur mise à jour tarification VIP:', error);
+      res.status(500).json({ message: 'Erreur serveur' });
+    }
+  }
+
+  // Codes promo VIP
+  async getVipPromoCodes(req: Request, res: Response) {
+    try {
+      const promoCodes = await prisma.codePromoVIP.findMany({
+        where: { estActif: true },
+        orderBy: { dateCreation: 'desc' }
+      });
+
+      res.json(promoCodes);
+
+    } catch (error) {
+      console.error('Erreur récupération codes promo VIP:', error);
+      res.status(500).json({ message: 'Erreur serveur' });
+    }
+  }
+
+  async createVipPromoCode(req: Request, res: Response) {
+    try {
+      const { code, description, reductionPourcent, reductionMontant, dureeBonus, utilisationsMax, dateExpiration } = req.body;
+
+      const promoCode = await prisma.codePromoVIP.create({
+        data: {
+          code,
+          description,
+          reductionPourcent,
+          reductionMontant,
+          dureeBonus,
+          utilisationsMax,
+          dateExpiration: dateExpiration ? new Date(dateExpiration) : null
+        }
+      });
+
+      res.status(201).json(promoCode);
+
+    } catch (error) {
+      console.error('Erreur création code promo VIP:', error);
+      res.status(500).json({ message: 'Erreur serveur' });
+    }
+  }
+
+  async updateVipPromoCode(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { estActif } = req.body;
+
+      const promoCode = await prisma.codePromoVIP.update({
+        where: { id },
+        data: { estActif }
+      });
+
+      res.json(promoCode);
+
+    } catch (error) {
+      console.error('Erreur mise à jour code promo VIP:', error);
+      res.status(500).json({ message: 'Erreur serveur' });
+    }
+  }
+
+  // Gestion des abonnements VIP
+  async getVipSubscriptions(req: Request, res: Response) {
+    try {
+      const { status = 'ACTIF', page = 1, limit = 20 } = req.query;
+      const skip = (Number(page) - 1) * Number(limit);
+
+      const subscriptions = await prisma.abonnementVIP.findMany({
+        where: { statut: status as string },
+        include: {
+          utilisateur: {
+            select: {
+              id: true,
+              nom: true,
+              prenom: true,
+              email: true
+            }
+          }
+        },
+        skip,
+        take: Number(limit),
+        orderBy: { dateCreation: 'desc' }
+      });
+
+      const total = await prisma.abonnementVIP.count({ where: { statut: status as string } });
+
+      res.json({
+        subscriptions,
+        total,
+        page: Number(page),
+        limit: Number(limit)
+      });
+
+    } catch (error) {
+      console.error('Erreur récupération abonnements VIP:', error);
+      res.status(500).json({ message: 'Erreur serveur' });
+    }
+  }
+
+  async createVipSubscription(req: Request, res: Response) {
+    try {
+      const { utilisateurId, duree, codePromo } = req.body;
+
+      // Vérifier que l'utilisateur existe
+      const user = await prisma.utilisateur.findUnique({
+        where: { id: utilisateurId }
+      });
+
+      if (!user) {
+        return res.status(404).json({ message: 'Utilisateur non trouvé' });
+      }
+
+      // Récupérer la tarification
+      const pricing = await prisma.tarificationVIP.findFirst({
+        where: { duree, estActif: true }
+      });
+
+      if (!pricing) {
+        return res.status(404).json({ message: 'Tarification non trouvée' });
+      }
+
+      let prixTotal = pricing.prix;
+      let dureeBonus = 0;
+
+      // Appliquer le code promo si fourni
+      if (codePromo) {
+        const promo = await prisma.codePromoVIP.findUnique({
+          where: { code: codePromo }
+        });
+
+        if (promo && promo.estActif && (!promo.dateExpiration || promo.dateExpiration > new Date())) {
+          if (promo.reductionPourcent) {
+            prixTotal -= prixTotal * (promo.reductionPourcent / 100);
+          }
+          if (promo.reductionMontant) {
+            prixTotal -= promo.reductionMontant;
+          }
+          if (promo.dureeBonus) {
+            dureeBonus = promo.dureeBonus;
+          }
+
+          // Incrémenter les utilisations
+          await prisma.codePromoVIP.update({
+            where: { code: codePromo },
+            data: { utilisationsActuelles: { increment: 1 } }
+          });
+        }
+      }
+
+      const dateDebut = new Date();
+      const dateFin = new Date();
+      dateFin.setDate(dateFin.getDate() + duree + dureeBonus);
+
+      // Créer l'abonnement
+      const subscription = await prisma.abonnementVIP.create({
+        data: {
+          utilisateurId,
+          dateDebut,
+          dateFin,
+          duree: duree + dureeBonus,
+          prixTotal,
+          codePromo
+        }
+      });
+
+      // Mettre à jour le rôle de l'utilisateur
+      await prisma.utilisateur.update({
+        where: { id: utilisateurId },
+        data: {
+          role: 'VIP',
+          finVip: dateFin
+        }
+      });
+
+      res.status(201).json(subscription);
+
+    } catch (error) {
+      console.error('Erreur création abonnement VIP:', error);
+      res.status(500).json({ message: 'Erreur serveur' });
+    }
+  }
+
+  async extendVipSubscription(req: Request, res: Response) {
+    try {
+      const { subscriptionId } = req.params;
+      const { dureeSupplementaire } = req.body;
+
+      const subscription = await prisma.abonnementVIP.findUnique({
+        where: { id: subscriptionId }
+      });
+
+      if (!subscription) {
+        return res.status(404).json({ message: 'Abonnement non trouvé' });
+      }
+
+      const pricing = await prisma.tarificationVIP.findFirst({
+        where: { duree: dureeSupplementaire, estActif: true }
+      });
+
+      if (!pricing) {
+        return res.status(404).json({ message: 'Tarification non trouvée' });
+      }
+
+      const nouvelleDateFin = new Date(subscription.dateFin);
+      nouvelleDateFin.setDate(nouvelleDateFin.getDate() + dureeSupplementaire);
+
+      await prisma.abonnementVIP.update({
+        where: { id: subscriptionId },
+        data: {
+          dateFin: nouvelleDateFin,
+          duree: subscription.duree + dureeSupplementaire,
+          prixTotal: subscription.prixTotal + pricing.prix
+        }
+      });
+
+      // Mettre à jour finVip de l'utilisateur
+      await prisma.utilisateur.update({
+        where: { id: subscription.utilisateurId },
+        data: { finVip: nouvelleDateFin }
+      });
+
+      res.json({ message: 'Abonnement étendu avec succès' });
+
+    } catch (error) {
+      console.error('Erreur extension abonnement VIP:', error);
+      res.status(500).json({ message: 'Erreur serveur' });
+    }
+  }
+
+  async refundVipSubscription(req: Request, res: Response) {
+    try {
+      const { subscriptionId } = req.params;
+      const { raison } = req.body;
+
+      const subscription = await prisma.abonnementVIP.findUnique({
+        where: { id: subscriptionId }
+      });
+
+      if (!subscription) {
+        return res.status(404).json({ message: 'Abonnement non trouvé' });
+      }
+
+      if (subscription.statut === 'REMBOURSE') {
+        return res.status(400).json({ message: 'Abonnement déjà remboursé' });
+      }
+
+      await prisma.abonnementVIP.update({
+        where: { id: subscriptionId },
+        data: { statut: 'REMBOURSE' }
+      });
+
+      // Remettre l'utilisateur en UTILISATEUR
+      await prisma.utilisateur.update({
+        where: { id: subscription.utilisateurId },
+        data: {
+          role: 'UTILISATEUR',
+          finVip: null
+        }
+      });
+
+      res.json({ message: 'Abonnement remboursé avec succès' });
+
+    } catch (error) {
+      console.error('Erreur remboursement abonnement VIP:', error);
+      res.status(500).json({ message: 'Erreur serveur' });
+    }
+  }
+
+  // Analytics VIP
+  async getVipAnalytics(req: Request, res: Response) {
+    try {
+      // Revenus totaux VIP
+      const totalRevenue = await prisma.abonnementVIP.aggregate({
+        _sum: { prixTotal: true },
+        where: { statut: { in: ['ACTIF', 'EXPIRE'] } }
+      });
+
+      // Nombre d'abonnements actifs
+      const activeSubscriptions = await prisma.abonnementVIP.count({
+        where: {
+          statut: 'ACTIF',
+          dateFin: { gte: new Date() }
+        }
+      });
+
+      // Taux de conversion VIP
+      const totalUsers = await prisma.utilisateur.count();
+      const vipUsers = await prisma.utilisateur.count({
+        where: { role: 'VIP' }
+      });
+      const vipConversionRate = totalUsers > 0 ? (vipUsers / totalUsers) * 100 : 0;
+
+      // Durée moyenne d'abonnement
+      const avgSubscriptionDuration = await prisma.abonnementVIP.aggregate({
+        _avg: { duree: true },
+        where: { statut: { in: ['ACTIF', 'EXPIRE'] } }
+      });
+
+      // Churn rate (abonnements expirés dans les 30 derniers jours)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const expiredSubscriptions = await prisma.abonnementVIP.count({
+        where: {
+          statut: 'EXPIRE',
+          dateFin: {
+            gte: thirtyDaysAgo,
+            lt: new Date()
+          }
+        }
+      });
+
+      const totalActiveAtPeriod = await prisma.abonnementVIP.count({
+        where: {
+          OR: [
+            { statut: 'ACTIF' },
+            {
+              statut: 'EXPIRE',
+              dateFin: { gte: thirtyDaysAgo }
+            }
+          ]
+        }
+      });
+
+      const churnRate = totalActiveAtPeriod > 0 ? (expiredSubscriptions / totalActiveAtPeriod) * 100 : 0;
+
+      // Revenus par période (dernier mois)
+      const monthlyRevenue = await prisma.abonnementVIP.aggregate({
+        _sum: { prixTotal: true },
+        where: {
+          dateCreation: { gte: thirtyDaysAgo },
+          statut: { in: ['ACTIF', 'EXPIRE'] }
+        }
+      });
+
+      res.json({
+        totalRevenue: totalRevenue._sum.prixTotal || 0,
+        monthlyRevenue: monthlyRevenue._sum.prixTotal || 0,
+        activeSubscriptions,
+        vipConversionRate: Math.round(vipConversionRate * 100) / 100,
+        avgSubscriptionDuration: Math.round(avgSubscriptionDuration._avg.duree || 0),
+        churnRate: Math.round(churnRate * 100) / 100
+      });
+
+    } catch (error) {
+      console.error('Erreur récupération analytics VIP:', error);
       res.status(500).json({ message: 'Erreur serveur' });
     }
   }

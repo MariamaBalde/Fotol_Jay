@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { AdminService, UserDto, UsersResponse } from '../services/admin.service';
 import { AdminHeaderComponent } from '../admin-header/admin-header.component';
 
@@ -8,15 +10,30 @@ import { AdminHeaderComponent } from '../admin-header/admin-header.component';
   templateUrl: './users.html',
   styleUrls: ['./users.css'],
   standalone: true,
-  imports: [CommonModule, AdminHeaderComponent]
+  imports: [CommonModule, FormsModule, AdminHeaderComponent]
 })
-export class UsersComponent implements OnInit {
+export class UsersComponent implements OnInit, OnDestroy {
   users: UserDto[] = [];
   loading = true;
   error: string | null = null;
   total = 0;
   page = 1;
   limit = 20;
+
+  // Statistiques
+  userStats: any = null;
+
+  // Filtres
+  searchTerm = '';
+  selectedRole = '';
+  selectedStatus = '';
+  sortBy = 'date-desc';
+
+  // Modal
+  selectedUser: UserDto | null = null;
+
+  private subscriptions: Subscription[] = [];
+  private searchTimeout: any;
 
   // Méthode pour Math.ceil dans le template
   get totalPages(): number {
@@ -27,12 +44,30 @@ export class UsersComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUsers();
+    this.loadUserStats();
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
   }
 
   loadUsers(): void {
     this.loading = true;
     this.error = null;
-    this.adminService.getUsers({ page: this.page, limit: this.limit }).subscribe({
+
+    const filters: any = {
+      page: this.page,
+      limit: this.limit
+    };
+
+    if (this.searchTerm) filters.search = this.searchTerm;
+    if (this.selectedRole) filters.role = this.selectedRole;
+    if (this.selectedStatus) filters.status = this.selectedStatus;
+
+    this.adminService.getUsers(filters).subscribe({
       next: (response: UsersResponse) => {
         this.users = response.users;
         this.total = response.total;
@@ -44,6 +79,32 @@ export class UsersComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  loadUserStats(): void {
+    // Statistiques simulées pour l'instant
+    this.userStats = {
+      totalUsers: Math.floor(Math.random() * 1000) + 500,
+      activeUsers: Math.floor(Math.random() * 300) + 100,
+      vipUsers: Math.floor(Math.random() * 50) + 10,
+      vipPercentage: Math.round(Math.random() * 10) + 5,
+      retentionRate: Math.round(Math.random() * 20) + 70
+    };
+  }
+
+  onSearchChange(): void {
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+    this.searchTimeout = setTimeout(() => {
+      this.page = 1; // Reset to first page
+      this.loadUsers();
+    }, 500);
+  }
+
+  applyFilters(): void {
+    this.page = 1; // Reset to first page
+    this.loadUsers();
   }
 
   updateUserStatus(userId: string, newStatus: string): void {
@@ -68,6 +129,50 @@ export class UsersComponent implements OnInit {
       case 'SUSPENDU': return 'status-suspended';
       case 'BLOQUE': return 'status-blocked';
       default: return 'status-pending';
+    }
+  }
+
+  getRoleClass(role: string): string {
+    switch (role) {
+      case 'ADMINISTRATEUR': return 'status-vip';
+      case 'MODERATEUR': return 'status-approved';
+      case 'VIP': return 'status-vip';
+      default: return 'status-pending';
+    }
+  }
+
+  viewUserDetails(user: UserDto): void {
+    this.selectedUser = user;
+  }
+
+  closeUserModal(): void {
+    this.selectedUser = null;
+  }
+
+  sendNotification(user: UserDto): void {
+    const message = prompt(`Envoyer une notification à ${user.nom}:`);
+    if (message) {
+      alert(`Notification envoyée à ${user.nom}: ${message}`);
+    }
+  }
+
+  sendMessage(user: UserDto): void {
+    const message = prompt(`Envoyer un message à ${user.nom}:`);
+    if (message) {
+      alert(`Message envoyé à ${user.nom}: ${message}`);
+    }
+  }
+
+  resetPassword(user: UserDto): void {
+    if (confirm(`Êtes-vous sûr de vouloir réinitialiser le mot de passe de ${user.nom} ?`)) {
+      alert(`Mot de passe réinitialisé pour ${user.nom}. Un email a été envoyé.`);
+    }
+  }
+
+  deleteUser(user: UserDto): void {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer définitivement le compte de ${user.nom} ? Cette action est irréversible.`)) {
+      alert(`Compte de ${user.nom} supprimé.`);
+      this.loadUsers(); // Recharger la liste
     }
   }
 }

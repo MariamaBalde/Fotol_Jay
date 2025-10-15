@@ -1,55 +1,66 @@
-<div class="mes-produits">
-  <div class="container">
-    <!-- Header -->
-    <div class="header-section">
-      <h1>📦 Mes annonces</h1>
-      <p class="subtitle">Gérez vos produits publiés sur FreshMarket</p>
-    </div>
+<div class="mes-produits-container">
+  <!-- Navigation -->
+  <app-navbar></app-navbar>
 
-    <!-- Statistiques -->
-    <div class="stats-grid" *ngIf="!chargement">
-      <div class="stat-card">
-        <div class="stat-icon">📊</div>
-        <div class="stat-content">
-          <div class="stat-number">{{ totalProduits }}</div>
-          <div class="stat-label">Total</div>
-        </div>
-      </div>
+  <!-- Hero Section pour Mes Produits -->
+  <section class="dashboard-hero">
+    <div class="hero-overlay">
+      <div class="hero-content">
+        <h1 class="hero-title">📦 Mon Espace Vendeur</h1>
+        <p class="hero-subtitle">Gérez vos annonces et suivez vos performances</p>
 
-      <div class="stat-card">
-        <div class="stat-icon">✅</div>
-        <div class="stat-content">
-          <div class="stat-number">{{ produitsActifs }}</div>
-          <div class="stat-label">Actifs</div>
-        </div>
-      </div>
+        <!-- Actions rapides -->
+        <div class="quick-actions">
+          <button class="action-btn primary" (click)="naviguerVersCreation()">
+            <span class="btn-icon"><i class="fas fa-plus text-white"></i></span>
+            Nouvelle annonce
+          </button>
+          <!-- <button class="action-btn secondary" (click)="rafraichir()" [disabled]="chargement">
+            Actualiser
+          </button> -->
+                      <span class="btn-icon"><i class="fas fa-sync-alt text-blue-600"></i></span>
 
-      <div class="stat-card">
-        <div class="stat-icon">⏳</div>
-        <div class="stat-content">
-          <div class="stat-number">{{ produitsEnAttente }}</div>
-          <div class="stat-label">En attente</div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon">⌛</div>
-        <div class="stat-content">
-          <div class="stat-number">{{ produitsExpires }}</div>
-          <div class="stat-label">Expirés</div>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- Actions -->
-    <div class="actions-bar">
-      <button class="btn-primary" (click)="naviguerVersCreation()">
-        ➕ Nouvelle annonce
-      </button>
-      <button class="btn-secondary" (click)="rafraichir()" [disabled]="chargement">
-        🔄 Actualiser
-      </button>
-    </div>
+ <!-- Statistiques Dashboard -->
+ <section class="stats-section" *ngIf="!chargement">
+   <div class="stats-container">
+     <div class="stat-card total" [ngClass]="{'animate-in': !chargement}">
+       <div class="stat-icon"><i class="fas fa-chart-bar text-white"></i></div>
+       <div class="stat-content">
+         <div class="stat-number">{{ totalProduits }}</div>
+         <div class="stat-label">Total annonces</div>
+       </div>
+     </div>
+
+     <div class="stat-card active" [ngClass]="{'animate-in': !chargement}">
+       <div class="stat-icon"><i class="fas fa-check-circle text-white"></i></div>
+       <div class="stat-content">
+         <div class="stat-number">{{ produitsActifs }}</div>
+         <div class="stat-label">Annonces actives</div>
+       </div>
+     </div>
+
+     <div class="stat-card pending" [ngClass]="{'animate-in': !chargement}">
+       <div class="stat-icon"><i class="fas fa-clock text-white"></i></div>
+       <div class="stat-content">
+         <div class="stat-number">{{ produitsEnAttente }}</div>
+         <div class="stat-label">En modération</div>
+       </div>
+     </div>
+
+     <div class="stat-card expired" [ngClass]="{'animate-in': !chargement}">
+       <div class="stat-icon"><i class="fas fa-hourglass-end text-white"></i></div>
+       <div class="stat-content">
+         <div class="stat-number">{{ produitsExpires }}</div>
+         <div class="stat-label">Expirées</div>
+       </div>
+     </div>
+   </div>
+ </section>
 
     <!-- État de chargement -->
     <div class="loading-state" *ngIf="chargement">
@@ -75,85 +86,121 @@
       </button>
     </div>
 
-    <!-- Liste des produits -->
-    <div class="produits-list" *ngIf="!chargement && !erreur && totalProduits > 0">
-      <div class="produits-grid">
-        <div
-          class="produit-item"
-          *ngFor="let produit of (produits$ | async)?.produits"
-        >
-          <!-- Image principale -->
-          <div class="produit-image">
-            <img
-              *ngIf="produit.images && produit.images.length > 0"
-              [src]="obtenirUrlImage(produit.images[0].url)"
-              [alt]="produit.titre"
-              (error)="handleImageError($event)"
-            />
-            <div class="no-image" *ngIf="!produit.images || produit.images.length === 0">
-              📷 Pas d'image
-            </div>
+ <!-- Liste des produits -->
+ <main class="products-section" *ngIf="!chargement && !erreur && totalProduits > 0">
+   <!-- Filtres et tri -->
+   <div class="products-header">
+     <div class="products-info">
+       <h2 class="section-title">Mes Annonces</h2>
+       <p class="section-subtitle">{{ totalProduits }} annonce(s) au total</p>
+     </div>
+     <div class="products-controls">
+       <select class="filter-select" (change)="filtrerParStatut($event)">
+         <option value="tous">Tous les statuts</option>
+         <option value="APPROUVE">Actives</option>
+         <option value="EN_ATTENTE">En attente</option>
+         <option value="REFUSE">Refusées</option>
+         <option value="EXPIRE">Expirées</option>
+       </select>
+     </div>
+   </div>
 
-            <!-- Badge VIP -->
-            <div class="vip-badge" *ngIf="produit.utilisateur.finVip">
-              ⭐ VIP
-            </div>
+   <!-- Grille des produits -->
+   <div class="products-grid">
+     <div
+       class="product-card"
+       *ngFor="let produit of (produits$ | async)?.produits"
+       [ngClass]="{'animate-in': !chargement}"
+     >
+       <!-- Image principale -->
+       <div class="product-image">
+         <img
+           *ngIf="produit.images && produit.images.length > 0"
+           [src]="obtenirUrlImage(produit.images[0].url)"
+           [alt]="produit.titre"
+           (error)="handleImageError($event)"
+         />
+         <div class="no-image" *ngIf="!produit.images || produit.images.length === 0">
+           <span class="no-image-icon"><i class="fas fa-camera text-gray-400"></i></span>
+           <span class="no-image-text">Pas d'image</span>
+         </div>
 
-            <!-- Badge statut -->
-            <div class="status-badge" [ngClass]="obtenirCouleurStatut(produit.statut)">
-              {{ obtenirStatutLibelle(produit.statut) }}
-            </div>
-          </div>
+         <!-- Badges -->
+         <div class="product-badges">
+           <div class="vip-badge" *ngIf="produit.utilisateur.finVip">
+             <span class="badge-icon"><i class="fas fa-star text-yellow-400"></i></span>
+             <span class="badge-text">VIP</span>
+           </div>
+           <div class="status-badge" [ngClass]="obtenirCouleurStatut(produit.statut)">
+             <span class="status-icon"><i [class]="obtenirIconeStatut(produit.statut) + ' text-white'"></i></span>
+             <span class="status-text">{{ obtenirStatutLibelle(produit.statut) }}</span>
+           </div>
+         </div>
+       </div>
 
-          <!-- Contenu -->
-          <div class="produit-content">
-            <h3 class="produit-title">{{ produit.titre }}</h3>
-            <p class="produit-price">{{ produit.prix | number: '1.0-0' }} FCFA</p>
+       <!-- Contenu -->
+       <div class="product-content">
+         <div class="product-header">
+           <h3 class="product-title">{{ produit.titre }}</h3>
+           <div class="product-price">
+             <span class="price-amount">{{ produit.prix | number: '1.0-0' }}</span>
+             <span class="price-currency">FCFA</span>
+           </div>
+         </div>
 
-            <div class="produit-meta">
-              <span class="meta-item">
-                👁️ {{ produit.vues }} vues
-              </span>
-              <span class="meta-item">
-                📍 {{ produit.utilisateur.localisation || 'Non spécifié' }}
-              </span>
-            </div>
+         <div class="product-meta">
+           <div class="meta-item">
+             <span class="meta-icon"><i class="fas fa-eye text-gray-500"></i></span>
+             <span class="meta-text">{{ produit.vues }} vues</span>
+           </div>
+           <div class="meta-item">
+             <span class="meta-icon"><i class="fas fa-map-marker-alt text-gray-500"></i></span>
+             <span class="meta-text">{{ produit.utilisateur.localisation || 'Non spécifié' }}</span>
+           </div>
+           <div class="meta-item" *ngIf="produit.statut === 'APPROUVE'">
+             <span class="meta-icon"><i class="fas fa-clock text-gray-500"></i></span>
+             <span class="meta-text">{{ calculerJoursRestants(produit) }}j restants</span>
+           </div>
+         </div>
 
-            <!-- Barre d'expiration (si approuvé) -->
-            <div class="expiration-bar" *ngIf="produit.statut === 'APPROUVE'">
-              <div class="expiration-fill"></div>
-            </div>
-          </div>
+         <!-- Barre d'expiration -->
+         <div class="expiration-progress" *ngIf="produit.statut === 'APPROUVE'">
+           <div class="expiration-bar">
+             <div
+               class="expiration-fill"
+               [style.width.%]="calculerProgressionExpiration(produit)"
+             ></div>
+           </div>
+         </div>
+       </div>
 
-          <!-- Actions -->
-          <div class="produit-actions">
-            <button
-              class="action-btn primary"
-              (click)="modifierProduit(produit)"
-              title="Modifier"
-            >
-              ✏️
-            </button>
+       <!-- Actions -->
+       <div class="product-actions">
+         <button
+           (click)="modifierProduit(produit)"
+           title="Modifier l'annonce"
+         >
+           <span class="btn-icon"><i class="fas fa-edit text-blue-600"></i></span>
+         </button>
 
-            <button
-              class="action-btn secondary"
-              *ngIf="peutRepublier(produit)"
-              (click)="republierProduit(produit)"
-              title="Republier"
-            >
-              🔄
-            </button>
+         <button
+           class="action-btn republish"
+           *ngIf="peutRepublier(produit)"
+           (click)="republierProduit(produit)"
+           title="Republier l'annonce"
+         >
+           <span class="btn-icon"><i class="fas fa-redo text-orange-600"></i></span>
+           <span class="btn-text">Republier</span>
+         </button>
 
-            <button
-              class="action-btn danger"
-              (click)="supprimerProduit(produit)"
-              title="Supprimer"
-            >
-              🗑️
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+         <button
+           (click)="supprimerProduit(produit)"
+           title="Supprimer l'annonce"
+         >
+           <span class="btn-icon"><i class="fas fa-trash text-red-600"></i></span>
+         </button>
+       </div>
+     </div>
+   </div>
+ </main>
 </div>

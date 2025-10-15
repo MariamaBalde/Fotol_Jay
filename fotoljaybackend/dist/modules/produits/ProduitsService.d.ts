@@ -18,9 +18,9 @@ export declare class ProduitsService {
             id: string;
             dateCreation: Date;
             url: string;
+            produitId: string;
             urlMiniature: string | null;
             ordre: number;
-            produitId: string;
         }[];
     } & {
         id: string;
@@ -54,9 +54,9 @@ export declare class ProduitsService {
             id: string;
             dateCreation: Date;
             url: string;
+            produitId: string;
             urlMiniature: string | null;
             ordre: number;
-            produitId: string;
         }[];
     } & {
         id: string;
@@ -90,9 +90,9 @@ export declare class ProduitsService {
                 id: string;
                 dateCreation: Date;
                 url: string;
+                produitId: string;
                 urlMiniature: string | null;
                 ordre: number;
-                produitId: string;
             }[];
         } & {
             id: string;
@@ -133,9 +133,9 @@ export declare class ProduitsService {
                 id: string;
                 dateCreation: Date;
                 url: string;
+                produitId: string;
                 urlMiniature: string | null;
                 ordre: number;
-                produitId: string;
             }[];
         } & {
             id: string;
@@ -179,9 +179,9 @@ export declare class ProduitsService {
             id: string;
             dateCreation: Date;
             url: string;
+            produitId: string;
             urlMiniature: string | null;
             ordre: number;
-            produitId: string;
         }[];
     } & {
         id: string;
@@ -217,38 +217,20 @@ export declare class ProduitsService {
         utilisateurId: string;
         dateExpiration: Date;
     }>;
-    listerProduitsEnAttente(): Promise<({
-        utilisateur: {
-            id: string;
-            email: string;
-            prenom: string;
-            nom: string;
-        };
-        images: {
-            id: string;
-            dateCreation: Date;
-            url: string;
-            urlMiniature: string | null;
-            ordre: number;
-            produitId: string;
-        }[];
-    } & {
+    listerProduitsEnAttente(): Promise<{
         id: string;
-        localisation: string | null;
-        dateCreation: Date;
-        dateMiseAJour: Date;
         titre: string;
         description: string;
-        prix: number;
         categorie: string;
         etat: string;
-        statut: import("@prisma/client").$Enums.StatutProduit;
-        raisonRefus: string | null;
+        prix: number;
+        vendeurNom: string;
+        vendeurTelephone: string;
+        vendeurEmail: string;
+        dateCreation: string;
         vues: number;
-        nombreContacts: number;
-        utilisateurId: string;
-        dateExpiration: Date;
-    })[]>;
+        images: string[];
+    }[]>;
     modererProduit(id: string, statut: 'APPROUVE' | 'REFUSE', raisonRefus?: string): Promise<{
         utilisateur: {
             id: string;
@@ -261,6 +243,7 @@ export declare class ProduitsService {
             localisation: string | null;
             role: import("@prisma/client").$Enums.Role;
             finVip: Date | null;
+            statutModerateur: string | null;
             dateCreation: Date;
             dateMiseAJour: Date;
         };

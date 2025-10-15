@@ -13,7 +13,7 @@ export class AdminGuard {
             context.getClass(),
         ]);
         if (!requiredRoles) {
-            return true; // Si pas de rôles requis, autoriser
+            return true;
         }
         const { user } = context.switchToHttp().getRequest();
         return requiredRoles.some((role) => user?.role?.includes(role));

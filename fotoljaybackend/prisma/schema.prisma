@@ -3,11 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-
 
 enum Role {
   UTILISATEUR
@@ -24,54 +22,56 @@ enum StatutProduit {
 }
 
 model Utilisateur {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  motDePasse    String
-  prenom        String
-  nom           String
-  telephone     String
-  photoProfil   String?
-  localisation  String?
-  role          Role      @default(UTILISATEUR)
-  finVip        DateTime?
-  statutModerateur String? @default("ACTIF") // 'ACTIF', 'INACTIF', 'SUSPENDU'
-  dateCreation  DateTime  @default(now())
-  dateMiseAJour DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  email            String    @unique
+  motDePasse       String
+  prenom           String
+  nom              String
+  telephone        String
+  photoProfil      String?
+  localisation     String?
+  role             Role      @default(UTILISATEUR)
+  finVip           DateTime?
+  statutModerateur String?   @default("ACTIF") // 'ACTIF', 'INACTIF', 'SUSPENDU'
+  dateCreation     DateTime  @default(now())
+  dateMiseAJour    DateTime  @updatedAt
 
-  produits      Produit[]
-  notifications Notification[]
-  signalementsSignales Signalement[] @relation("Signaleur")
-  signalementsTraites  Signalement[] @relation("Moderateur")
+  produits             Produit[]
+  notifications        Notification[]
+  signalementsSignales Signalement[]        @relation("Signaleur")
+  signalementsTraites  Signalement[]        @relation("Moderateur")
   erreursSysteme       ErreurSysteme[]
   decisionsModeration  DecisionModeration[]
   feedbacksModerateur  FeedbackModerateur[] @relation("FeedbackModerateur")
-  feedbacksUtilisateur  FeedbackModerateur[] @relation("FeedbackUtilisateur")
+  feedbacksUtilisateur FeedbackModerateur[] @relation("FeedbackUtilisateur")
+  abonnementsVIP       AbonnementVIP[]
+  historiquePrixVIP    HistoriquePrixVIP[]
 
   @@index([email])
 }
 
 model Produit {
-  id                 String       @id @default(cuid())
-  titre              String
-  description        String        @db.Text
-  prix              Float
-  categorie         String
-  etat              String
-  localisation      String?
-  statut            StatutProduit @default(EN_ATTENTE)
-  raisonRefus       String?       @db.Text
-  vues              Int           @default(0)
-  nombreContacts    Int           @default(0)
+  id             String        @id @default(cuid())
+  titre          String
+  description    String        @db.Text
+  prix           Float
+  categorie      String
+  etat           String
+  localisation   String?
+  statut         StatutProduit @default(EN_ATTENTE)
+  raisonRefus    String?       @db.Text
+  vues           Int           @default(0)
+  nombreContacts Int           @default(0)
 
-  utilisateurId     String
-  utilisateur       Utilisateur   @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  utilisateurId String
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
 
-  images            ImageProduit[]
+  images              ImageProduit[]
   decisionsModeration DecisionModeration[]
 
-  dateCreation      DateTime      @default(now())
-  dateExpiration    DateTime
-  dateMiseAJour    DateTime      @updatedAt
+  dateCreation   DateTime @default(now())
+  dateExpiration DateTime
+  dateMiseAJour  DateTime @updatedAt
 
   @@index([statut, dateCreation])
   @@index([utilisateurId])
@@ -79,13 +79,13 @@ model Produit {
 }
 
 model ImageProduit {
-  id           String   @id @default(cuid())
-  url          String   @db.Text
-  urlMiniature String?  @db.Text
+  id           String  @id @default(cuid())
+  url          String  @db.Text
+  urlMiniature String? @db.Text
   ordre        Int
 
-  produitId    String
-  produit      Produit  @relation(fields: [produitId], references: [id], onDelete: Cascade)
+  produitId String
+  produit   Produit @relation(fields: [produitId], references: [id], onDelete: Cascade)
 
   dateCreation DateTime @default(now())
 
@@ -93,11 +93,11 @@ model ImageProduit {
 }
 
 model Notification {
-  id           String   @id @default(cuid())
-  type         String
-  titre        String
-  message      String   @db.Text
-  estLu        Boolean  @default(false)
+  id      String  @id @default(cuid())
+  type    String
+  titre   String
+  message String  @db.Text
+  estLu   Boolean @default(false)
 
   utilisateurId String
   utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
@@ -109,22 +109,22 @@ model Notification {
 }
 
 model Signalement {
-  id           String   @id @default(cuid())
-  type         String   // 'UTILISATEUR', 'PRODUIT', 'COMMENTAIRE'
-  raison       String   @db.Text
-  description  String   @db.Text
-  statut       String   @default("EN_ATTENTE") // 'EN_ATTENTE', 'TRAITE', 'REJETE'
+  id          String @id @default(cuid())
+  type        String // 'UTILISATEUR', 'PRODUIT', 'COMMENTAIRE'
+  raison      String @db.Text
+  description String @db.Text
+  statut      String @default("EN_ATTENTE") // 'EN_ATTENTE', 'TRAITE', 'REJETE'
 
-  signaleurId  String
-  signaleur    Utilisateur @relation("Signaleur", fields: [signaleurId], references: [id])
+  signaleurId String
+  signaleur   Utilisateur @relation("Signaleur", fields: [signaleurId], references: [id])
 
-  cibleId      String   // ID de l'utilisateur ou produit signalé
-  cibleType    String   // 'UTILISATEUR' ou 'PRODUIT'
+  cibleId   String // ID de l'utilisateur ou produit signalé
+  cibleType String // 'UTILISATEUR' ou 'PRODUIT'
 
-  traiteParId  String?
-  traitePar    Utilisateur? @relation("Moderateur", fields: [traiteParId], references: [id])
+  traiteParId String?
+  traitePar   Utilisateur? @relation("Moderateur", fields: [traiteParId], references: [id])
 
-  dateCreation DateTime @default(now())
+  dateCreation   DateTime  @default(now())
   dateTraitement DateTime?
 
   @@index([statut])
@@ -132,13 +132,13 @@ model Signalement {
 }
 
 model ErreurSysteme {
-  id           String   @id @default(cuid())
-  niveau       String   // 'ERROR', 'WARNING', 'INFO'
-  message      String   @db.Text
-  stackTrace   String?  @db.Text
-  url          String?
-  userAgent    String?
-  ip           String?
+  id         String  @id @default(cuid())
+  niveau     String // 'ERROR', 'WARNING', 'INFO'
+  message    String  @db.Text
+  stackTrace String? @db.Text
+  url        String?
+  userAgent  String?
+  ip         String?
 
   utilisateurId String?
   utilisateur   Utilisateur? @relation(fields: [utilisateurId], references: [id])
@@ -150,24 +150,97 @@ model ErreurSysteme {
 }
 
 model ParametreVIP {
-  id          String   @id @default(cuid())
-  cle         String   @unique
+  id          String  @id @default(cuid())
+  cle         String  @unique
   valeur      String
   description String?
-  type        String   @default("STRING") // 'STRING', 'NUMBER', 'BOOLEAN'
+  type        String  @default("STRING") // 'STRING', 'NUMBER', 'BOOLEAN'
 
   dateCreation  DateTime @default(now())
   dateMiseAJour DateTime @updatedAt
 }
 
-model DecisionModeration {
-  id           String   @id @default(cuid())
-  decision     String   // 'APPROUVER', 'REFUSER'
-  commentaire  String?  @db.Text
-  tempsDecision Int     // en millisecondes
+model TarificationVIP {
+  id                String  @id @default(cuid())
+  duree             Int // durée en jours (7, 15, 30, etc.)
+  prix              Float
+  devise            String  @default("XOF")
+  reductionPourcent Float? // réduction pour achats multiples
+  estActif          Boolean @default(true)
 
-  produitId    String
-  produit      Produit  @relation(fields: [produitId], references: [id], onDelete: Cascade)
+  dateCreation  DateTime @default(now())
+  dateMiseAJour DateTime @updatedAt
+
+  @@index([duree, estActif])
+}
+
+model CodePromoVIP {
+  id                    String    @id @default(cuid())
+  code                  String    @unique
+  description           String?
+  reductionPourcent     Float
+  reductionMontant      Float?
+  dureeBonus            Int? // jours bonus
+  utilisationsMax       Int?
+  utilisationsActuelles Int       @default(0)
+  dateExpiration        DateTime?
+  estActif              Boolean   @default(true)
+
+  dateCreation  DateTime @default(now())
+  dateMiseAJour DateTime @updatedAt
+
+  @@index([code])
+  @@index([estActif, dateExpiration])
+}
+
+model AbonnementVIP {
+  id            String      @id @default(cuid())
+  utilisateurId String
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+
+  dateDebut DateTime
+  dateFin   DateTime
+  duree     Int // durée en jours
+  prixTotal Float
+  devise    String   @default("XOF")
+  statut    String   @default("ACTIF") // 'ACTIF', 'EXPIRE', 'ANNULE', 'REMBOURSE'
+  codePromo String?
+
+  // Métriques
+  produitsPublies Int @default(0)
+  vuesTotales     Int @default(0)
+  contactsTotal   Int @default(0)
+
+  dateCreation  DateTime @default(now())
+  dateMiseAJour DateTime @updatedAt
+
+  @@index([utilisateurId, statut])
+  @@index([dateFin])
+}
+
+model HistoriquePrixVIP {
+  id           String      @id @default(cuid())
+  duree        Int
+  ancienPrix   Float
+  nouveauPrix  Float
+  devise       String      @default("XOF")
+  raison       String?
+  modifieParId String
+  modifiePar   Utilisateur @relation(fields: [modifieParId], references: [id])
+
+  dateCreation DateTime @default(now())
+
+  @@index([duree, dateCreation])
+}
+
+model DecisionModeration {
+  id            String  @id @default(cuid())
+  decision      String // 'APPROUVER', 'REFUSER'
+  commentaire   String? @db.Text
+  tempsDecision Int // en millisecondes
+
+  produitId String
+  produit   Produit @relation(fields: [produitId], references: [id], onDelete: Cascade)
 
   moderateParId String
   moderatePar   Utilisateur @relation(fields: [moderateParId], references: [id])
@@ -178,10 +251,10 @@ model DecisionModeration {
 }
 
 model FeedbackModerateur {
-  id           String   @id @default(cuid())
-  note         Int      // 1-5
-  commentaire  String?  @db.Text
-  type         String   // 'POSITIF', 'NEGATIF', 'NEUTRE'
+  id          String  @id @default(cuid())
+  note        Int // 1-5
+  commentaire String? @db.Text
+  type        String // 'POSITIF', 'NEGATIF', 'NEUTRE'
 
   moderateurId String
   moderateur   Utilisateur @relation("FeedbackModerateur", fields: [moderateurId], references: [id])

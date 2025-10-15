@@ -1,0 +1,188 @@
+<div class="accueil-container">
+  <!-- Navigation -->
+  <app-navbar></app-navbar>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1 class="hero-title">
+          📸 Vendez vos produits en toute transparence
+        </h1>
+        <p class="hero-subtitle">
+          FotolJay : La plateforme qui révolutionne la vente en ligne.
+          Prenez des photos, publiez, et laissez les acheteurs vous contacter directement.
+        </p>
+        <div class="hero-buttons">
+          <button class="btn-primary" (click)="allerProduits()">
+            🛍️ Découvrir les produits
+          </button>
+          <button class="btn-secondary" *ngIf="!authService.estConnecte()" (click)="allerInscription()">
+            ✨ Commencer à vendre
+          </button>
+        </div>
+      </div>
+      <div class="hero-image">
+        <div class="phone-mockup">
+          <div class="phone-screen">
+            <div class="app-preview">
+              <div class="preview-header">
+                <span class="preview-logo">📸 FotolJay</span>
+              </div>
+              <div class="preview-products">
+                <div class="preview-product" *ngFor="let i of [1,2,3]">
+                  <div class="preview-product-image"></div>
+                  <div class="preview-product-info">
+                    <div class="preview-title"></div>
+                    <div class="preview-price"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats-section">
+    <div class="stats-container">
+      <div class="stat-item">
+        <div class="stat-number">{{ stats.totalProduits }}</div>
+        <div class="stat-label">Produits actifs</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">{{ stats.produitsApprouves }}</div>
+        <div class="stat-label">Produits approuvés</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">{{ stats.utilisateursActifs }}</div>
+        <div class="stat-label">Utilisateurs actifs</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section">
+    <div class="features-container">
+      <h2 class="section-title">Pourquoi choisir FotolJay ?</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📸</div>
+          <h3 class="feature-title">Photos authentiques</h3>
+          <p class="feature-description">
+            Prenez des photos directement avec votre appareil. Pas d'importation,
+            que des images réelles et transparentes.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3 class="feature-title">Modération rapide</h3>
+          <p class="feature-description">
+            Nos modérateurs vérifient chaque produit pour garantir la qualité
+            et la sécurité de la plateforme.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⭐</div>
+          <h3 class="feature-title">Système VIP</h3>
+          <p class="feature-description">
+            Les vendeurs VIP bénéficient d'une visibilité prioritaire
+            et d'avantages exclusifs.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔔</div>
+          <h3 class="feature-title">Notifications intelligentes</h3>
+          <p class="feature-description">
+            Recevez des rappels pour republication avant expiration
+            de vos annonces.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⏰</div>
+          <h3 class="feature-title">Expiration automatique</h3>
+          <p class="feature-description">
+            Les produits sont automatiquement supprimés après 7 jours
+            pour éviter les stocks dormants.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3 class="feature-title">Analytics complets</h3>
+          <p class="feature-description">
+            Suivez les vues, contacts et performances de vos produits
+            en temps réel.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Produits Vedettes -->
+  <section class="vedettes-section" *ngIf="produitsVedettes.length > 0">
+    <div class="vedettes-container">
+      <h2 class="section-title">✨ Produits du moment</h2>
+      <div class="produits-grid">
+        <div class="produit-card" *ngFor="let produit of produitsVedettes.slice(0, 6)" (click)="voirProduit(produit)">
+          <div class="produit-image">
+            <img [src]="produit.images && produit.images.length ? ('http://localhost:3000' + produit.images[0].url) : '/assets/images/placeholder.png'"
+                 [alt]="produit.titre" />
+            <div class="produit-badge" *ngIf="produit.utilisateur.finVip">⭐ VIP</div>
+          </div>
+          <div class="produit-info">
+            <h3 class="produit-titre">{{ produit.titre }}</h3>
+            <p class="produit-prix">{{ produit.prix | number:'1.0-0' }} FCFA</p>
+            <div class="produit-meta">
+              <span>👁️ {{ produit.vues }}</span>
+              <span>📍 {{ produit.utilisateur.localisation || 'Dakar' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="voir-plus">
+        <button class="btn-outline" (click)="allerProduits()">Voir tous les produits →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-container">
+      <h2 class="cta-title">Prêt à commencer votre aventure FotolJay ?</h2>
+      <p class="cta-subtitle">
+        Rejoignez des milliers d'utilisateurs qui vendent et achètent en toute transparence.
+      </p>
+      <div class="cta-buttons">
+        <button class="btn-primary" *ngIf="!authService.estConnecte()" (click)="allerInscription()">
+          🚀 Créer mon compte
+        </button>
+        <button class="btn-secondary" (click)="allerProduits()">
+          🛍️ Explorer les produits
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <span class="logo-icon">📸</span>
+          <span class="logo-text">FotolJay</span>
+        </div>
+        <div class="footer-links">
+          <a href="#" class="footer-link">À propos</a>
+          <a href="#" class="footer-link">Conditions d'utilisation</a>
+          <a href="#" class="footer-link">Politique de confidentialité</a>
+          <a href="#" class="footer-link">Contact</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2024 FotolJay. Tous droits réservés.</p>
+      </div>
+    </div>
+  </footer>
+</div>

@@ -19,6 +19,7 @@ export declare class AuthService {
             localisation: string | null;
             role: import("@prisma/client").$Enums.Role;
             finVip: Date | null;
+            statutModerateur: string | null;
             dateCreation: Date;
             dateMiseAJour: Date;
         };
@@ -35,6 +36,7 @@ export declare class AuthService {
             localisation: string | null;
             role: import("@prisma/client").$Enums.Role;
             finVip: Date | null;
+            statutModerateur: string | null;
             dateCreation: Date;
             dateMiseAJour: Date;
         };

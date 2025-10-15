@@ -190,6 +190,58 @@ export class AdminService {
     return this.http.put(`${this.apiUrl}/vip-settings/${key}`, { valeur });
   }
 
+  // Tarification VIP
+  getVipPricing(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/vip-pricing`);
+  }
+
+  createVipPricing(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/vip-pricing`, data);
+  }
+
+  updateVipPricing(id: string, data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/vip-pricing/${id}`, data);
+  }
+
+  // Codes promo VIP
+  getVipPromoCodes(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/vip-promo-codes`);
+  }
+
+  createVipPromoCode(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/vip-promo-codes`, data);
+  }
+
+  updateVipPromoCode(id: string, data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/vip-promo-codes/${id}`, data);
+  }
+
+  // Abonnements VIP
+  getVipSubscriptions(status?: string, page?: number, limit?: number): Observable<any> {
+    let params = new HttpParams();
+    if (status) params = params.set('status', status);
+    if (page) params = params.set('page', page.toString());
+    if (limit) params = params.set('limit', limit.toString());
+    return this.http.get(`${this.apiUrl}/vip-subscriptions`, { params });
+  }
+
+  createVipSubscription(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/vip-subscriptions`, data);
+  }
+
+  extendVipSubscription(subscriptionId: string, dureeSupplementaire: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/vip-subscriptions/${subscriptionId}/extend`, { dureeSupplementaire });
+  }
+
+  refundVipSubscription(subscriptionId: string, raison: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/vip-subscriptions/${subscriptionId}/refund`, { raison });
+  }
+
+  // Analytics VIP
+  getVipAnalytics(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/vip-analytics`);
+  }
+
   // Export
   exportReport(type: string, format?: string): Observable<any> {
     let params = new HttpParams();

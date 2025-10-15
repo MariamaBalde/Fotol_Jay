@@ -32,10 +32,10 @@ ALTER TABLE `Notification` DROP COLUMN `createdAt`,
     DROP COLUMN `isRead`,
     DROP COLUMN `title`,
     DROP COLUMN `userId`,
-    ADD COLUMN `dateCreation` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    ADD COLUMN `dateCreation` TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ADD COLUMN `estLu` BOOLEAN NOT NULL DEFAULT false,
-    ADD COLUMN `titre` VARCHAR(191) NOT NULL,
-    ADD COLUMN `utilisateurId` VARCHAR(191) NOT NULL;
+    ADD COLUMN `titre` TEXT NOT NULL,
+    ADD COLUMN `utilisateurId` TEXT NOT NULL;
 
 -- DropTable
 DROP TABLE `Product`;
@@ -46,72 +46,89 @@ DROP TABLE `ProductImage`;
 -- DropTable
 DROP TABLE `User`;
 
--- CreateTable
-CREATE TABLE `Utilisateur` (
-    `id` VARCHAR(191) NOT NULL,
-    `email` VARCHAR(191) NOT NULL,
-    `motDePasse` VARCHAR(191) NOT NULL,
-    `prenom` VARCHAR(191) NOT NULL,
-    `nom` VARCHAR(191) NOT NULL,
-    `telephone` VARCHAR(191) NOT NULL,
-    `photoProfil` VARCHAR(191) NULL,
-    `localisation` VARCHAR(191) NULL,
-    `role` ENUM('UTILISATEUR', 'VIP', 'MODERATEUR', 'ADMINISTRATEUR') NOT NULL DEFAULT 'UTILISATEUR',
-    `finVip` DATETIME(3) NULL,
-    `dateCreation` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `dateMiseAJour` DATETIME(3) NOT NULL,
+-- CreateEnum
+CREATE TYPE "Role" AS ENUM ('UTILISATEUR', 'VIP', 'MODERATEUR', 'ADMINISTRATEUR');
 
-    UNIQUE INDEX `Utilisateur_email_key`(`email`),
-    INDEX `Utilisateur_email_idx`(`email`),
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- CreateEnum
+CREATE TYPE "StatutProduit" AS ENUM ('EN_ATTENTE', 'APPROUVE', 'REFUSE', 'EXPIRE');
 
 -- CreateTable
-CREATE TABLE `Produit` (
-    `id` VARCHAR(191) NOT NULL,
-    `titre` VARCHAR(191) NOT NULL,
-    `description` TEXT NOT NULL,
-    `prix` DOUBLE NOT NULL,
-    `categorie` VARCHAR(191) NOT NULL,
-    `etat` VARCHAR(191) NOT NULL,
-    `statut` ENUM('EN_ATTENTE', 'APPROUVE', 'REFUSE', 'EXPIRE') NOT NULL DEFAULT 'EN_ATTENTE',
-    `raisonRefus` TEXT NULL,
-    `vues` INTEGER NOT NULL DEFAULT 0,
-    `nombreContacts` INTEGER NOT NULL DEFAULT 0,
-    `utilisateurId` VARCHAR(191) NOT NULL,
-    `dateCreation` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `dateExpiration` DATETIME(3) NOT NULL,
-    `dateMiseAJour` DATETIME(3) NOT NULL,
+CREATE TABLE "Utilisateur" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "motDePasse" TEXT NOT NULL,
+    "prenom" TEXT NOT NULL,
+    "nom" TEXT NOT NULL,
+    "telephone" TEXT NOT NULL,
+    "photoProfil" TEXT,
+    "localisation" TEXT,
+    "role" "Role" NOT NULL DEFAULT 'UTILISATEUR',
+    "finVip" TIMESTAMP(3),
+    "dateCreation" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "dateMiseAJour" TIMESTAMP(3) NOT NULL,
 
-    INDEX `Produit_statut_dateCreation_idx`(`statut`, `dateCreation`),
-    INDEX `Produit_utilisateurId_idx`(`utilisateurId`),
-    INDEX `Produit_dateExpiration_idx`(`dateExpiration`),
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CONSTRAINT "Utilisateur_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
-CREATE TABLE `ImageProduit` (
-    `id` VARCHAR(191) NOT NULL,
-    `url` VARCHAR(191) NOT NULL,
-    `ordre` INTEGER NOT NULL,
-    `produitId` VARCHAR(191) NOT NULL,
-    `dateCreation` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+CREATE TABLE "Produit" (
+    "id" TEXT NOT NULL,
+    "titre" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "prix" DOUBLE PRECISION NOT NULL,
+    "categorie" TEXT NOT NULL,
+    "etat" TEXT NOT NULL,
+    "statut" "StatutProduit" NOT NULL DEFAULT 'EN_ATTENTE',
+    "raisonRefus" TEXT,
+    "vues" INTEGER NOT NULL DEFAULT 0,
+    "nombreContacts" INTEGER NOT NULL DEFAULT 0,
+    "utilisateurId" TEXT NOT NULL,
+    "dateCreation" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "dateMiseAJour" TIMESTAMP(3) NOT NULL,
 
-    INDEX `ImageProduit_produitId_idx`(`produitId`),
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CONSTRAINT "Produit_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ImageProduit" (
+    "id" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "ordre" INTEGER NOT NULL,
+    "produitId" TEXT NOT NULL,
+    "dateCreation" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ImageProduit_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Notification" (
+    "id" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "titre" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "estLu" BOOLEAN NOT NULL DEFAULT false,
+    "utilisateurId" TEXT NOT NULL,
+    "dateCreation" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateIndex
-CREATE INDEX `Notification_utilisateurId_estLu_idx` ON `Notification`(`utilisateurId`, `estLu`);
-
--- CreateIndex
-CREATE INDEX `Notification_dateCreation_idx` ON `Notification`(`dateCreation`);
-
--- AddForeignKey
-ALTER TABLE `Produit` ADD CONSTRAINT `Produit_utilisateurId_fkey` FOREIGN KEY (`utilisateurId`) REFERENCES `Utilisateur`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `ImageProduit` ADD CONSTRAINT `ImageProduit_produitId_fkey` FOREIGN KEY (`produitId`) REFERENCES `Produit`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+CREATE UNIQUE INDEX "Utilisateur_email_key" ON "Utilisateur"("email");
+CREATE INDEX "Utilisateur_email_idx" ON "Utilisateur"("email");
+CREATE INDEX "Produit_utilisateurId_statut_idx" ON "Produit"("utilisateurId", "statut");
+CREATE INDEX "ImageProduit_produitId_idx" ON "ImageProduit"("produitId");
+CREATE INDEX "Notification_utilisateurId_estLu_idx" ON "Notification"("utilisateurId", "estLu");
+CREATE INDEX "Notification_dateCreation_idx" ON "Notification"("dateCreation");
 
 -- AddForeignKey
-ALTER TABLE `Notification` ADD CONSTRAINT `Notification_utilisateurId_fkey` FOREIGN KEY (`utilisateurId`) REFERENCES `Utilisateur`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Produit" ADD CONSTRAINT "Produit_utilisateurId_fkey" 
+    FOREIGN KEY ("utilisateurId") REFERENCES "Utilisateur"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ImageProduit" ADD CONSTRAINT "ImageProduit_produitId_fkey" 
+    FOREIGN KEY ("produitId") REFERENCES "Produit"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_utilisateurId_fkey" 
+    FOREIGN KEY ("utilisateurId") REFERENCES "Utilisateur"("id") ON DELETE CASCADE ON UPDATE CASCADE;

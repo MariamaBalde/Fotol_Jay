@@ -40,6 +40,25 @@ router.post('/moderators/:moderatorId/feedback', adminController.submitModerator
 router.get('/vip-settings', adminController.getVipSettings.bind(adminController));
 router.put('/vip-settings/:key', adminController.updateVipSetting.bind(adminController));
 
+// Routes de tarification VIP
+router.get('/vip-pricing', adminController.getVipPricing.bind(adminController));
+router.post('/vip-pricing', adminController.createVipPricing.bind(adminController));
+router.put('/vip-pricing/:id', adminController.updateVipPricing.bind(adminController));
+
+// Routes des codes promo VIP
+router.get('/vip-promo-codes', adminController.getVipPromoCodes.bind(adminController));
+router.post('/vip-promo-codes', adminController.createVipPromoCode.bind(adminController));
+router.put('/vip-promo-codes/:id', adminController.updateVipPromoCode.bind(adminController));
+
+// Routes des abonnements VIP
+router.get('/vip-subscriptions', adminController.getVipSubscriptions.bind(adminController));
+router.post('/vip-subscriptions', adminController.createVipSubscription.bind(adminController));
+router.put('/vip-subscriptions/:subscriptionId/extend', adminController.extendVipSubscription.bind(adminController));
+router.put('/vip-subscriptions/:subscriptionId/refund', adminController.refundVipSubscription.bind(adminController));
+
+// Routes des analytics VIP
+router.get('/vip-analytics', adminController.getVipAnalytics.bind(adminController));
+
 // Routes d'export
 router.get('/export/:type', adminController.exportReports.bind(adminController));
 
