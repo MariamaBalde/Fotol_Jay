@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Role } from "@prisma/client";
 import prisma from "../../config/database.js";
 export class AuthRepository {
     async findByEmail(email) {

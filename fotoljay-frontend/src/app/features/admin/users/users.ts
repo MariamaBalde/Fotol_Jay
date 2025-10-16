@@ -23,6 +23,8 @@ export class UsersComponent implements OnInit, OnDestroy {
 
   // Statistiques
   userStats: any = null;
+  statsLoading = true;
+  statsError: string | null = null;
 
   // Filtres
   searchTerm = '';
@@ -83,14 +85,34 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   loadUserStats(): void {
-    // Statistiques simulées pour l'instant
-    this.userStats = {
-      totalUsers: Math.floor(Math.random() * 1000) + 500,
-      activeUsers: Math.floor(Math.random() * 300) + 100,
-      vipUsers: Math.floor(Math.random() * 50) + 10,
-      vipPercentage: Math.round(Math.random() * 10) + 5,
-      retentionRate: Math.round(Math.random() * 20) + 70
-    };
+    this.statsLoading = true;
+    this.statsError = null;
+
+    this.adminService.getDashboardStats().subscribe({
+      next: (stats) => {
+        this.userStats = {
+          totalUsers: stats.totalUsers,
+          activeUsers: stats.activeUsers,
+          vipUsers: stats.vipSubscribers || 0,
+          vipPercentage: stats.vipConversionRate ? Math.round(stats.vipConversionRate * 100) : 0,
+          retentionRate: stats.conversionRate ? Math.round(stats.conversionRate * 100) : 0
+        };
+        this.statsLoading = false;
+      },
+      error: (error) => {
+        console.error('Erreur chargement statistiques:', error);
+        this.statsError = 'Erreur de chargement des statistiques';
+        this.statsLoading = false;
+        // Fallback to fake data if API fails
+        this.userStats = {
+          totalUsers: Math.floor(Math.random() * 1000) + 500,
+          activeUsers: Math.floor(Math.random() * 300) + 100,
+          vipUsers: Math.floor(Math.random() * 50) + 10,
+          vipPercentage: Math.round(Math.random() * 10) + 5,
+          retentionRate: Math.round(Math.random() * 20) + 70
+        };
+      }
+    });
   }
 
   onSearchChange(): void {

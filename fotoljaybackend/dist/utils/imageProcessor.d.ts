@@ -16,11 +16,22 @@ export declare class ProcesseurImage {
         espace: keyof sharp.ColourspaceEnum;
     }>;
     static validerImage(cheminFichier: string): Promise<boolean>;
+    static uploadToCloudinary(fichier: Express.Multer.File, dossier?: string): Promise<{
+        url: string;
+        urlMiniature: string;
+        publicId: string;
+        metadata: {
+            largeur: number;
+            hauteur: number;
+            taille: number;
+        };
+    }>;
     static traiterLot(fichiers: Express.Multer.File[], options?: OptionsTraitement): Promise<Array<{
-        original: string;
-        optimise: string;
-        miniature: string;
+        url: string;
+        urlMiniature: string;
+        publicId: string;
         metadata: any;
     }>>;
+    static supprimerDeCloudinary(publicId: string): Promise<void>;
 }
 //# sourceMappingURL=imageProcessor.d.ts.map

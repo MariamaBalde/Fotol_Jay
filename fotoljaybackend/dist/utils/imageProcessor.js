@@ -1,14 +1,13 @@
 import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs';
+import cloudinary from '../config/cloudinary.js';
 export class ProcesseurImage {
     // Optimiser et redimensionner une image
     static async optimiser(cheminSource, cheminDestination, options = {}) {
         const { largeurMax = 1200, hauteurMax = 1200, qualite = 85, format = 'jpeg', } = options;
         try {
-            // Si pas de destination spécifiée, écraser la source
             const destination = cheminDestination || cheminSource;
-            // Traiter l'image
             await sharp(cheminSource)
                 .resize(largeurMax, hauteurMax, {
                 fit: 'inside', // Garde les proportions
@@ -76,7 +75,48 @@ export class ProcesseurImage {
             return false;
         }
     }
-    // Traiter un lot d'images
+    // Upload vers Cloudinary
+    static async uploadToCloudinary(fichier, dossier = 'produits') {
+        try {
+            // Upload vers Cloudinary avec transformation pour l'image principale
+            const resultat = await cloudinary.uploader.upload(fichier.path, {
+                folder: dossier,
+                resource_type: 'auto',
+                transformation: [
+                    { width: 1200, height: 1200, crop: 'limit' }, // Image principale
+                ],
+            });
+            // Générer l'URL de la miniature en utilisant les transformations Cloudinary
+            const urlMiniature = cloudinary.url(resultat.public_id, {
+                width: 300,
+                height: 300,
+                crop: 'fill',
+                quality: 'auto',
+                format: 'auto'
+            });
+            // Supprimer le fichier temporaire
+            fs.unlinkSync(fichier.path);
+            return {
+                url: resultat.secure_url,
+                urlMiniature: urlMiniature,
+                publicId: resultat.public_id,
+                metadata: {
+                    largeur: resultat.width,
+                    hauteur: resultat.height,
+                    taille: resultat.bytes,
+                },
+            };
+        }
+        catch (error) {
+            console.error('Erreur Cloudinary:', error);
+            // Nettoyer le fichier temporaire en cas d'erreur
+            if (fs.existsSync(fichier.path)) {
+                fs.unlinkSync(fichier.path);
+            }
+            throw new Error(`Erreur lors de l'upload vers Cloudinary: ${error.message}`);
+        }
+    }
+    // Traiter un lot d'images avec Cloudinary
     static async traiterLot(fichiers, options = {}) {
         const resultats = [];
         for (const fichier of fichiers) {
@@ -87,17 +127,13 @@ export class ProcesseurImage {
                     fs.unlinkSync(fichier.path);
                     throw new Error(`Fichier invalide: ${fichier.originalname}`);
                 }
-                // Optimiser
-                const cheminOptimise = await this.optimiser(fichier.path, undefined, options);
-                // Créer miniature
-                const cheminMiniature = await this.creerMiniature(cheminOptimise);
-                // Obtenir métadonnées
-                const metadata = await this.obtenirMetadonnees(cheminOptimise);
+                // Upload vers Cloudinary
+                const resultatCloudinary = await this.uploadToCloudinary(fichier, 'produits');
                 resultats.push({
-                    original: fichier.path,
-                    optimise: cheminOptimise,
-                    miniature: cheminMiniature,
-                    metadata,
+                    url: resultatCloudinary.url,
+                    urlMiniature: resultatCloudinary.urlMiniature,
+                    publicId: resultatCloudinary.publicId,
+                    metadata: resultatCloudinary.metadata,
                 });
             }
             catch (erreur) {
@@ -110,6 +146,16 @@ export class ProcesseurImage {
             }
         }
         return resultats;
+    }
+    // Supprimer une image de Cloudinary
+    static async supprimerDeCloudinary(publicId) {
+        try {
+            await cloudinary.uploader.destroy(publicId);
+        }
+        catch (error) {
+            console.error('Erreur lors de la suppression de l\'image:', error);
+            throw error;
+        }
     }
 }
 //# sourceMappingURL=imageProcessor.js.map

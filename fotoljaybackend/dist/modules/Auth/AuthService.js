@@ -33,5 +33,20 @@ export class AuthService {
         const { motDePasse: _, ...utilisateur } = user;
         return { utilisateur, token };
     }
+    async creerAdministrateur(data) {
+        const existingUser = await this.authRepository.findByEmail(data.email);
+        if (existingUser) {
+            throw new Error('Cet email est déjà utilisé');
+        }
+        const hashedPassword = await bcrypt.hash(data.motDePasse, 10);
+        const user = await this.authRepository.create({
+            ...data,
+            motDePasse: hashedPassword,
+            role: 'ADMINISTRATEUR', // Force le rôle administrateur
+        });
+        const token = generateToken(user.id, user.role);
+        const { motDePasse: _, ...utilisateur } = user;
+        return { utilisateur, token };
+    }
 }
 //# sourceMappingURL=AuthService.js.map
