@@ -3,14 +3,15 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { AdminService, UserDto, UsersResponse } from '../services/admin.service';
-import { AdminHeaderComponent } from '../admin-header/admin-header.component';
+import { SidebarComponent } from '../sidebar/sidebar';
+import { NotificationsService } from '../../../core/services/notifications.service';
 
 @Component({
   selector: 'app-users',
   templateUrl: './users.html',
   styleUrls: ['./users.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, AdminHeaderComponent]
+  imports: [CommonModule, FormsModule, SidebarComponent]
 })
 export class UsersComponent implements OnInit, OnDestroy {
   users: UserDto[] = [];
@@ -22,6 +23,8 @@ export class UsersComponent implements OnInit, OnDestroy {
 
   // Statistiques
   userStats: any = null;
+  statsLoading = true;
+  statsError: string | null = null;
 
   // Filtres
   searchTerm = '';
@@ -40,7 +43,7 @@ export class UsersComponent implements OnInit, OnDestroy {
     return Math.ceil(this.total / this.limit);
   }
 
-  constructor(private adminService: AdminService) {}
+  constructor(private adminService: AdminService, private notificationsService: NotificationsService) {}
 
   ngOnInit(): void {
     this.loadUsers();
@@ -75,21 +78,41 @@ export class UsersComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Erreur chargement utilisateurs:', error);
-        alert('Erreur lors du chargement des utilisateurs');
+        this.notificationsService.error('Erreur de chargement', 'Impossible de charger les utilisateurs');
         this.loading = false;
       }
     });
   }
 
   loadUserStats(): void {
-    // Statistiques simulées pour l'instant
-    this.userStats = {
-      totalUsers: Math.floor(Math.random() * 1000) + 500,
-      activeUsers: Math.floor(Math.random() * 300) + 100,
-      vipUsers: Math.floor(Math.random() * 50) + 10,
-      vipPercentage: Math.round(Math.random() * 10) + 5,
-      retentionRate: Math.round(Math.random() * 20) + 70
-    };
+    this.statsLoading = true;
+    this.statsError = null;
+
+    this.adminService.getDashboardStats().subscribe({
+      next: (stats) => {
+        this.userStats = {
+          totalUsers: stats.totalUsers,
+          activeUsers: stats.activeUsers,
+          vipUsers: stats.vipSubscribers || 0,
+          vipPercentage: stats.vipConversionRate ? Math.round(stats.vipConversionRate * 100) : 0,
+          retentionRate: stats.conversionRate ? Math.round(stats.conversionRate * 100) : 0
+        };
+        this.statsLoading = false;
+      },
+      error: (error) => {
+        console.error('Erreur chargement statistiques:', error);
+        this.statsError = 'Erreur de chargement des statistiques';
+        this.statsLoading = false;
+        // Fallback to fake data if API fails
+        this.userStats = {
+          totalUsers: Math.floor(Math.random() * 1000) + 500,
+          activeUsers: Math.floor(Math.random() * 300) + 100,
+          vipUsers: Math.floor(Math.random() * 50) + 10,
+          vipPercentage: Math.round(Math.random() * 10) + 5,
+          retentionRate: Math.round(Math.random() * 20) + 70
+        };
+      }
+    });
   }
 
   onSearchChange(): void {
@@ -152,26 +175,26 @@ export class UsersComponent implements OnInit, OnDestroy {
   sendNotification(user: UserDto): void {
     const message = prompt(`Envoyer une notification à ${user.nom}:`);
     if (message) {
-      alert(`Notification envoyée à ${user.nom}: ${message}`);
+      this.notificationsService.success('Notification envoyée', `Notification envoyée à ${user.nom}`);
     }
   }
 
   sendMessage(user: UserDto): void {
     const message = prompt(`Envoyer un message à ${user.nom}:`);
     if (message) {
-      alert(`Message envoyé à ${user.nom}: ${message}`);
+      this.notificationsService.success('Message envoyé', `Message envoyé à ${user.nom}`);
     }
   }
 
   resetPassword(user: UserDto): void {
     if (confirm(`Êtes-vous sûr de vouloir réinitialiser le mot de passe de ${user.nom} ?`)) {
-      alert(`Mot de passe réinitialisé pour ${user.nom}. Un email a été envoyé.`);
+      this.notificationsService.success('Mot de passe réinitialisé', `Un email a été envoyé à ${user.nom}`);
     }
   }
 
   deleteUser(user: UserDto): void {
     if (confirm(`Êtes-vous sûr de vouloir supprimer définitivement le compte de ${user.nom} ? Cette action est irréversible.`)) {
-      alert(`Compte de ${user.nom} supprimé.`);
+      this.notificationsService.success('Compte supprimé', `Le compte de ${user.nom} a été supprimé`);
       this.loadUsers(); // Recharger la liste
     }
   }

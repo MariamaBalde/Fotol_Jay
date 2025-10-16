@@ -1,17 +1,19 @@
 /* Container principal avec fond élégant */
 .liste-produits-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--background-color) 0%, var(--surface-color) 100%);
+  background: #FFFFFF;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Hero Section moderne */
 .products-hero {
   position: relative;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #FFFFFF;
+  color: #2D3748;
   padding: 100px 0 80px;
   margin-top: 70px;
   overflow: hidden;
+  border-bottom: 1px solid #E2E8F0;
 }
 
 .products-hero::before {
@@ -41,10 +43,7 @@
   font-size: 3.2rem;
   font-weight: 800;
   margin-bottom: 1.5rem;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #2D3748;
   line-height: 1.1;
   letter-spacing: -0.02em;
   animation: fadeIn 1s ease-out;
@@ -52,7 +51,7 @@
 
 .hero-subtitle {
   font-size: 1.25rem;
-  opacity: 0.95;
+  color: #718096;
   margin-bottom: 3rem;
   font-weight: 400;
   line-height: 1.6;
@@ -67,18 +66,17 @@
 
 .search-bar {
   display: flex;
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: 3rem;
+  background: white;
+  border-radius: 50px;
   overflow: hidden;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 2px solid #E2E8F0;
   transition: all 0.3s ease;
 }
 
 .search-bar:focus-within {
-  box-shadow: 0 16px 60px rgba(0, 0, 0, 0.2);
-  transform: translateY(-2px);
+  border-color: #F9A826;
+  box-shadow: 0 0 0 4px rgba(249, 168, 38, 0.1);
 }
 
 .search-input {
@@ -88,18 +86,18 @@
   outline: none;
   font-size: 1.1rem;
   background: transparent;
-  color: var(--text-primary);
+  color: #2D3748;
   font-weight: 500;
 }
 
 .search-input::placeholder {
-  color: var(--text-secondary);
+  color: #718096;
   opacity: 0.8;
 }
 
 .search-button {
   padding: 1.25rem 2.5rem;
-  background: linear-gradient(135deg, var(--primary-color) 0%, #E6931A 100%);
+  background: #F9A826;
   color: white;
   border: none;
   cursor: pointer;
@@ -108,6 +106,7 @@
   gap: 0.5rem;
   font-weight: 600;
   font-size: 1rem;
+  border-radius: 0 50px 50px 0;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -125,7 +124,7 @@
 }
 
 .search-button:hover {
-  background: linear-gradient(135deg, #E6931A 0%, var(--primary-color) 100%);
+  background: #E6931A;
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(249, 168, 38, 0.4);
 }
@@ -140,10 +139,9 @@
 
 /* Section filtres élégante */
 .filters-section {
-  background: linear-gradient(135deg, white 0%, var(--surface-color) 100%);
+  background: #F7F7F7;
   padding: 3rem 0;
-  border-bottom: 1px solid var(--border-color);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid #E2E8F0;
   position: relative;
 }
 
@@ -173,9 +171,9 @@
   justify-content: center;
   background: white;
   padding: 2rem;
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-soft);
-  border: 1px solid rgba(249, 168, 38, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #E2E8F0;
 }
 
 .filter-group {
@@ -188,7 +186,7 @@
 
 .filter-label {
   font-weight: 700;
-  color: var(--text-primary);
+  color: #2D3748;
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -201,20 +199,20 @@
   content: '';
   width: 4px;
   height: 16px;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: #F9A826;
   border-radius: 2px;
 }
 
 .filter-select {
   padding: 1rem 1.25rem;
-  border: 2px solid var(--border-color);
-  border-radius: var(--border-radius);
+  border: 2px solid #E2E8F0;
+  border-radius: 12px;
   font-size: 1rem;
   background: white;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-weight: 500;
-  color: var(--text-primary);
+  color: #2D3748;
   appearance: none;
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
   background-position: right 0.75rem center;
@@ -224,14 +222,14 @@
 }
 
 .filter-select:hover {
-  border-color: var(--primary-color);
+  border-color: #F9A826;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(249, 168, 38, 0.15);
 }
 
 .filter-select:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: #F9A826;
   box-shadow: 0 0 0 4px rgba(249, 168, 38, 0.1);
   transform: translateY(-1px);
 }
@@ -245,8 +243,8 @@
 
 .price-input {
   padding: 1rem 1.25rem;
-  border: 2px solid var(--border-color);
-  border-radius: var(--border-radius);
+  border: 2px solid #E2E8F0;
+  border-radius: 12px;
   font-size: 1rem;
   width: 120px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -255,12 +253,12 @@
 }
 
 .price-input:hover {
-  border-color: var(--primary-color);
+  border-color: #F9A826;
 }
 
 .price-input:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: #F9A826;
   box-shadow: 0 0 0 4px rgba(249, 168, 38, 0.1);
   transform: translateY(-1px);
 }
@@ -281,10 +279,10 @@
 
 .btn-reset-filters {
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, var(--error) 0%, #C62828 100%);
+  background: #DC2626;
   color: white;
   border: none;
-  border-radius: var(--border-radius);
+  border-radius: 50px;
   font-weight: 700;
   cursor: pointer;
   display: flex;
@@ -310,9 +308,9 @@
 }
 
 .btn-reset-filters:hover {
-  background: linear-gradient(135deg, #C62828 0%, var(--error) 100%);
+  background: #B91C1C;
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+  box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);
 }
 
 .btn-reset-filters:hover::before {

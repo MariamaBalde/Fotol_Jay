@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { 
-  Camera, 
-  CameraResultType, 
+import {
+  Camera,
+  CameraResultType,
   CameraSource,
   CameraDirection
 } from '@capacitor/camera';
@@ -9,6 +9,7 @@ import { Platform } from '@angular/cdk/platform';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
+import { NotificationsService } from './notifications.service';
 
 export interface ImageUploadee {
   url: string;
@@ -34,7 +35,8 @@ export class UploadService {
 
   constructor(
     private http: HttpClient,
-    private platform: Platform
+    private platform: Platform,
+    private notificationsService: NotificationsService
   ) {}
 
   async prendrePhoto(): Promise<string> {
@@ -103,7 +105,7 @@ export class UploadService {
           }, 2000);
 
           // Afficher un message à l'utilisateur
-          alert('Photo prise automatiquement dans 2 secondes. Souriez ! 📸');
+          this.notificationsService.info('Photo automatique', 'Photo prise automatiquement dans 2 secondes. Souriez ! 📸');
         };
 
         video.onerror = () => {

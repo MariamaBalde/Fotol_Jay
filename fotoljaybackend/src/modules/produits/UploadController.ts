@@ -16,32 +16,22 @@ export class UploadController {
       // Validation du nombre d'images
       const validationNombre = ValidationImage.validerNombre(fichiers, 1, 5);
       if (!validationNombre.valide) {
-        // Supprimer les fichiers uploadés en cas d'erreur
-        supprimerFichiers(fichiers.map((f) => f.path));
         return res.status(400).json({
           erreur: 'Validation échouée',
           details: validationNombre.erreurs,
         });
       }
 
-      // Traiter les images (optimisation + miniatures)
-      const imagesTraitees = await ProcesseurImage.traiterLot(fichiers, {
-        largeurMax: 1200,
-        hauteurMax: 1200,
-        qualite: 85,
-        format: 'jpeg',
-      });
+      // Traiter les images avec Cloudinary
+      const imagesTraitees = await ProcesseurImage.traiterLot(fichiers);
 
-      // Construire les URLs relatives
+      // Construire le résultat
       const images = imagesTraitees.map((img, index) => ({
-        url: `/uploads/produits/${path.basename(img.optimise)}`,
-        urlMiniature: `/uploads/produits/${path.basename(img.miniature)}`,
+        url: img.url,
+        urlMiniature: img.urlMiniature,
         ordre: index + 1,
-        metadata: {
-          largeur: img.metadata.largeur,
-          hauteur: img.metadata.hauteur,
-          taille: img.metadata.taille,
-        },
+        publicId: img.publicId,
+        metadata: img.metadata,
       }));
 
       return res.status(200).json({
@@ -49,12 +39,6 @@ export class UploadController {
         images,
       });
     } catch (erreur: any) {
-      // En cas d'erreur, nettoyer les fichiers
-      if (req.files) {
-        const fichiers = req.files as Express.Multer.File[];
-        supprimerFichiers(fichiers.map((f) => f.path));
-      }
-
       return res.status(500).json({
         erreur: 'Erreur lors du traitement des images',
         details: erreur.message,

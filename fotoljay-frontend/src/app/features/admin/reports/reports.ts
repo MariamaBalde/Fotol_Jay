@@ -1,14 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AdminService } from '../services/admin.service';
-import { AdminHeaderComponent } from '../admin-header/admin-header.component';
+import { SidebarComponent } from '../sidebar/sidebar';
+import { NotificationsService } from '../../../core/services/notifications.service';
 
 @Component({
   selector: 'app-reports',
   templateUrl: './reports.html',
   styleUrls: ['./reports.css'],
   standalone: true,
-  imports: [CommonModule, AdminHeaderComponent]
+  imports: [CommonModule, SidebarComponent]
 })
 export class ReportsComponent implements OnInit {
   reports: any[] = [];
@@ -16,7 +17,7 @@ export class ReportsComponent implements OnInit {
   error: string | null = null;
   processingReportId: string | null = null;
 
-  constructor(private adminService: AdminService) {}
+  constructor(private adminService: AdminService, private notificationsService: NotificationsService) {}
 
   ngOnInit(): void {
     this.loadReports();
@@ -32,7 +33,7 @@ export class ReportsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Erreur chargement signalements:', error);
-        alert('Erreur lors du chargement des signalements');
+        this.notificationsService.error('Erreur de chargement', 'Impossible de charger les signalements');
         this.loading = false;
       }
     });

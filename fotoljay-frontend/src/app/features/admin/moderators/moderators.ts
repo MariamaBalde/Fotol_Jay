@@ -2,14 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../services/admin.service';
-import { AdminHeaderComponent } from '../admin-header/admin-header.component';
+import { SidebarComponent } from '../sidebar/sidebar';
+import { NotificationsService } from '../../../core/services/notifications.service';
 
 @Component({
   selector: 'app-moderators',
   templateUrl: './moderators.html',
   styleUrls: ['./moderators.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, AdminHeaderComponent]
+  imports: [CommonModule, FormsModule, SidebarComponent]
 })
 export class ModeratorsComponent implements OnInit {
   moderators: any[] = [];
@@ -35,7 +36,7 @@ export class ModeratorsComponent implements OnInit {
     motDePasse: ''
   };
 
-  constructor(private adminService: AdminService) {}
+  constructor(private adminService: AdminService, private notificationsService: NotificationsService) {}
 
   ngOnInit(): void {
     this.loadModerators();
@@ -52,7 +53,7 @@ export class ModeratorsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Erreur chargement modérateurs:', error);
-        alert('Erreur lors du chargement des modérateurs');
+        this.notificationsService.error('Erreur de chargement', 'Impossible de charger les modérateurs');
         this.loading = false;
       }
     });
@@ -79,7 +80,7 @@ export class ModeratorsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Erreur création modérateur:', error);
-        alert('Erreur lors de la création du modérateur');
+        this.notificationsService.error('Erreur de création', 'Impossible de créer le modérateur');
       }
     });
   }
@@ -92,7 +93,7 @@ export class ModeratorsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Erreur mise à jour rôle:', error);
-        alert('Erreur lors de la mise à jour du rôle');
+        this.notificationsService.error('Erreur de mise à jour', 'Impossible de mettre à jour le rôle');
       }
     });
   }
@@ -104,7 +105,7 @@ export class ModeratorsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Erreur mise à jour statut:', error);
-        alert('Erreur lors de la mise à jour du statut');
+        this.notificationsService.error('Erreur de mise à jour', 'Impossible de mettre à jour le statut');
       }
     });
   }
@@ -116,7 +117,7 @@ export class ModeratorsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Erreur chargement historique:', error);
-        alert('Erreur lors du chargement de l\'historique');
+        this.notificationsService.error('Erreur de chargement', 'Impossible de charger l\'historique');
       }
     });
   }
@@ -149,7 +150,7 @@ export class ModeratorsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Erreur mise à jour modérateur:', error);
-        alert('Erreur lors de la mise à jour du modérateur');
+        this.notificationsService.error('Erreur de mise à jour', 'Impossible de mettre à jour le modérateur');
       }
     });
   }
@@ -166,13 +167,13 @@ export class ModeratorsComponent implements OnInit {
     if (confirmation) {
       this.adminService.deleteModerator(moderator.id).subscribe({
         next: (result) => {
-          alert(`Modérateur ${moderator.prenom} ${moderator.nom} supprimé avec succès !\n\n${result.message}`);
+          this.notificationsService.success('Modérateur supprimé', `Modérateur ${moderator.prenom} ${moderator.nom} supprimé avec succès`);
           this.loadModerators();
           this.loadRanking();
         },
         error: (error) => {
           console.error('Erreur suppression modérateur:', error);
-          alert('Erreur lors de la suppression du modérateur');
+          this.notificationsService.error('Erreur de suppression', 'Impossible de supprimer le modérateur');
         }
       });
     }

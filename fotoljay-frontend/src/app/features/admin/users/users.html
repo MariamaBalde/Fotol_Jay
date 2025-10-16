@@ -1,4 +1,4 @@
-<app-admin-header></app-admin-header>
+<app-sidebar></app-sidebar>
 
 <div class="moderation-container">
   <div class="header">
@@ -7,7 +7,7 @@
   </div>
 
   <!-- Vue d'ensemble - Statistiques -->
-  <div class="overview-stats" *ngIf="userStats">
+  <div class="overview-stats" *ngIf="userStats && !statsLoading">
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon users-icon">
@@ -52,6 +52,18 @@
         </div>
       </div>
     </div>
+  <!-- Chargement des statistiques -->
+  <div *ngIf="statsLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Chargement des statistiques...</p>
+  </div>
+
+  <!-- Erreur des statistiques -->
+  <div *ngIf="statsError && !statsLoading" class="error-container">
+    <div class="error-icon">⚠️</div>
+    <h3>Erreur de chargement</h3>
+    <p>{{ statsError }}</p>
+  </div>
   </div>
 
   <!-- Filtres et recherche -->
