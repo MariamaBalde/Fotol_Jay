@@ -5,6 +5,7 @@ import { ProduitsService } from '../../../core/services/produits.service';
 import { Produit, ReponseProduits } from '../../../core/models/produit.model';
 import { Observable, Subscription } from 'rxjs';
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
+import { NotificationsService } from '../../../core/services/notifications.service';
 
 @Component({
   selector: 'app-mes-produits',
@@ -29,7 +30,8 @@ export class MesProduitsComponent implements OnInit, OnDestroy {
   constructor(
     private produitsService: ProduitsService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private notificationsService: NotificationsService
   ) {}
 
   ngOnInit(): void {
@@ -110,19 +112,19 @@ export class MesProduitsComponent implements OnInit, OnDestroy {
   republierProduit(produit: Produit): void {
     if (confirm('Voulez-vous republier ce produit ? Il sera remis en modération.')) {
       // TODO: Implémenter la republication
-      alert('Fonctionnalité de republication à implémenter');
+      this.notificationsService.info('Fonctionnalité à venir', 'La republication sera bientôt disponible');
     }
   }
 
   modifierProduit(produit: Produit): void {
     // TODO: Implémenter la modification
-    alert('Fonctionnalité de modification à implémenter');
+    this.notificationsService.info('Fonctionnalité à venir', 'La modification de produits sera bientôt disponible');
   }
 
   supprimerProduit(produit: Produit): void {
     if (confirm(`Êtes-vous sûr de vouloir supprimer "${produit.titre}" ? Cette action est irréversible.`)) {
       // TODO: Implémenter la suppression
-      alert('Fonctionnalité de suppression à implémenter');
+      this.notificationsService.info('Fonctionnalité à venir', 'La suppression de produits sera bientôt disponible');
     }
   }
 

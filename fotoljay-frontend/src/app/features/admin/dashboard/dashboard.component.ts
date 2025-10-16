@@ -4,14 +4,13 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AdminService, DashboardStats } from '../services/admin.service';
 import { AdminHeaderComponent } from '../admin-header/admin-header.component';
-import { SidebarComponent } from '../sidebar/sidebar';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
   standalone: true,
-  imports: [CommonModule, AdminHeaderComponent, SidebarComponent]
+  imports: [CommonModule, AdminHeaderComponent]
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   stats: DashboardStats | null = null;

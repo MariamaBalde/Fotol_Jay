@@ -23,21 +23,23 @@
         </div>
       </div>
       <div class="hero-image">
-        <div class="phone-mockup">
-          <div class="phone-screen">
-            <div class="app-preview">
-              <div class="preview-header">
-                <span class="preview-logo">📸 FotolJay</span>
-              </div>
-              <div class="preview-products">
-                <div class="preview-product" *ngFor="let i of [1,2,3]">
-                  <div class="preview-product-image"></div>
-                  <div class="preview-product-info">
-                    <div class="preview-title"></div>
-                    <div class="preview-price"></div>
-                  </div>
-                </div>
-              </div>
+        <div class="hero-product-preview">
+          <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop" alt="Modern Sofa" />
+          <div class="hero-product-info">
+            <div class="hero-product-title">Modern Yellow Sofa</div>
+            <div class="hero-product-price">2,500,000 FCFA</div>
+            <div class="hero-product-rating">
+              <span class="star">⭐</span>
+              <span class="star">⭐</span>
+              <span class="star">⭐</span>
+              <span class="star">⭐</span>
+              <span class="star">⭐</span>
+              <span>(4.8)</span>
+            </div>
+            <div class="hero-product-swatches">
+              <div class="color-swatch teal"></div>
+              <div class="color-swatch gray"></div>
+              <div class="color-swatch yellow"></div>
             </div>
           </div>
         </div>
@@ -45,20 +47,31 @@
     </div>
   </section>
 
-  <!-- Stats Section -->
-  <section class="stats-section">
-    <div class="stats-container">
-      <div class="stat-item">
-        <div class="stat-number">{{ stats.totalProduits }}</div>
-        <div class="stat-label">Produits actifs</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number">{{ stats.produitsApprouves }}</div>
-        <div class="stat-label">Produits approuvés</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number">{{ stats.utilisateursActifs }}</div>
-        <div class="stat-label">Utilisateurs actifs</div>
+  <!-- Product Categories Section -->
+  <section class="categories-section">
+    <div class="categories-container">
+      <h2 class="categories-title">Découvrez nos catégories</h2>
+      <div class="categories-grid">
+        <div class="category-card">
+          <div class="category-icon">🛋️</div>
+          <h3 class="category-name">Salon</h3>
+          <div class="category-price">À partir de 500,000 FCFA</div>
+        </div>
+        <div class="category-card">
+          <div class="category-icon">🛏️</div>
+          <h3 class="category-name">Chambre</h3>
+          <div class="category-price">À partir de 300,000 FCFA</div>
+        </div>
+        <div class="category-card">
+          <div class="category-icon">🍽️</div>
+          <h3 class="category-name">Salle à manger</h3>
+          <div class="category-price">À partir de 200,000 FCFA</div>
+        </div>
+        <div class="category-card">
+          <div class="category-icon">💺</div>
+          <h3 class="category-name">Bureau</h3>
+          <div class="category-price">À partir de 150,000 FCFA</div>
+        </div>
       </div>
     </div>
   </section>
@@ -120,29 +133,126 @@
     </div>
   </section>
 
-  <!-- Produits Vedettes -->
-  <section class="vedettes-section" *ngIf="produitsVedettes.length > 0">
-    <div class="vedettes-container">
-      <h2 class="section-title">✨ Produits du moment</h2>
-      <div class="produits-grid">
-        <div class="produit-card" *ngFor="let produit of produitsVedettes.slice(0, 6)" (click)="voirProduit(produit)">
-          <div class="produit-image">
+  <!-- Trending Products Section -->
+  <section class="trending-section" *ngIf="produitsVedettes.length > 0">
+    <div class="trending-container">
+      <h2 class="trending-title">Produits populaires</h2>
+      <p class="trending-subtitle">Découvrez les meubles les plus appréciés de notre communauté</p>
+      <div class="trending-grid">
+        <div class="trending-card" *ngFor="let produit of produitsVedettes.slice(0, 4)" (click)="voirProduit(produit)">
+          <div class="trending-image">
             <img [src]="produit.images && produit.images.length ? ('http://localhost:3000' + produit.images[0].url) : '/assets/images/placeholder.png'"
                  [alt]="produit.titre" />
-            <div class="produit-badge" *ngIf="produit.utilisateur.finVip">⭐ VIP</div>
+            <div class="trending-rating">⭐ 4.5</div>
           </div>
-          <div class="produit-info">
-            <h3 class="produit-titre">{{ produit.titre }}</h3>
-            <p class="produit-prix">{{ produit.prix | number:'1.0-0' }} FCFA</p>
-            <div class="produit-meta">
-              <span>👁️ {{ produit.vues }}</span>
-              <span>📍 {{ produit.utilisateur.localisation || 'Dakar' }}</span>
-            </div>
+          <div class="trending-info">
+            <h3 class="trending-name">{{ produit.titre }}</h3>
+            <p class="trending-price">{{ produit.prix | number:'1.0-0' }} FCFA</p>
+            <button class="trending-cart-btn">Ajouter au panier</button>
           </div>
         </div>
       </div>
-      <div class="voir-plus">
-        <button class="btn-outline" (click)="allerProduits()">Voir tous les produits →</button>
+    </div>
+  </section>
+
+  <!-- Product Gallery Section -->
+  <section class="gallery-section">
+    <div class="gallery-container">
+      <h2 class="gallery-title">Galerie de produits</h2>
+      <div class="gallery-filters">
+        <button class="filter-tab active">Excellence</button>
+        <button class="filter-tab">Populaire</button>
+        <button class="filter-tab">Nouveau</button>
+      </div>
+      <div class="gallery-grid">
+        <div class="gallery-item" *ngFor="let i of [1,2,3,4,5,6]">
+          <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&h=300&fit=crop" alt="Furniture" class="gallery-image" />
+          <div class="gallery-overlay">
+            <div class="gallery-name">Modern Sofa Set</div>
+            <div class="gallery-price">2,500,000 FCFA</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Promotional Banner -->
+  <section class="banner-section">
+    <div class="banner-container">
+      <div class="banner-content">
+        <h2 class="banner-title">Offre Spéciale du Mois</h2>
+        <p class="banner-subtitle">Jusqu'à 40% de réduction sur tous les meubles de salon</p>
+        <div class="countdown">
+          <div class="countdown-item">
+            <span class="countdown-number">15</span>
+            <span class="countdown-label">Jours</span>
+          </div>
+          <div class="countdown-item">
+            <span class="countdown-number">08</span>
+            <span class="countdown-label">Heures</span>
+          </div>
+          <div class="countdown-item">
+            <span class="countdown-number">45</span>
+            <span class="countdown-label">Min</span>
+          </div>
+          <div class="countdown-item">
+            <span class="countdown-number">22</span>
+            <span class="countdown-label">Sec</span>
+          </div>
+        </div>
+        <button class="banner-btn">Shop Now</button>
+      </div>
+      <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&h=400&fit=crop" alt="Yellow Sofa Set" class="banner-image" />
+    </div>
+  </section>
+
+  <!-- Blog Section -->
+  <section class="blog-section">
+    <div class="blog-container">
+      <h2 class="blog-title">Conseils & Inspiration</h2>
+      <div class="blog-grid">
+        <div class="blog-card">
+          <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=200&fit=crop" alt="Blog post" class="blog-image" />
+          <div class="blog-content">
+            <div class="blog-meta">
+              <div class="blog-author">
+                <div class="author-avatar"></div>
+                <span>Sarah Johnson</span>
+              </div>
+              <span>2 jours</span>
+            </div>
+            <h3 class="blog-title-small">Comment choisir le canapé parfait pour votre salon</h3>
+            <p class="blog-excerpt">Découvrez nos conseils d'experts pour sélectionner le canapé qui correspond à votre style de vie et à votre espace.</p>
+          </div>
+        </div>
+        <div class="blog-card">
+          <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=200&fit=crop" alt="Blog post" class="blog-image" />
+          <div class="blog-content">
+            <div class="blog-meta">
+              <div class="blog-author">
+                <div class="author-avatar"></div>
+                <span>Mike Chen</span>
+              </div>
+              <span>5 jours</span>
+            </div>
+            <h3 class="blog-title-small">Tendances mobilier 2024 : ce qui se fait</h3>
+            <p class="blog-excerpt">Explorez les dernières tendances en matière de mobilier et découvrez comment moderniser votre intérieur.</p>
+          </div>
+        </div>
+        <div class="blog-card">
+          <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=200&fit=crop" alt="Blog post" class="blog-image" />
+          <div class="blog-content">
+            <div class="blog-meta">
+              <div class="blog-author">
+                <div class="author-avatar"></div>
+                <span>Emma Davis</span>
+              </div>
+              <span>1 semaine</span>
+            </div>
+            <h3 class="blog-title-small">Guide d'entretien de vos meubles en bois</h3>
+            <p class="blog-excerpt">Apprenez à prendre soin de vos meubles pour qu'ils conservent leur beauté au fil des années.</p>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -169,15 +279,38 @@
   <footer class="footer">
     <div class="footer-container">
       <div class="footer-content">
-        <div class="footer-logo">
-          <span class="logo-icon">📸</span>
-          <span class="logo-text">FotolJay</span>
+        <div class="footer-section">
+          <h3>À propos</h3>
+          <ul class="footer-links">
+            <li><a href="#" class="footer-link">Notre histoire</a></li>
+            <li><a href="#" class="footer-link">Équipe</a></li>
+            <li><a href="#" class="footer-link">Carrières</a></li>
+            <li><a href="#" class="footer-link">Presse</a></li>
+          </ul>
         </div>
-        <div class="footer-links">
-          <a href="#" class="footer-link">À propos</a>
-          <a href="#" class="footer-link">Conditions d'utilisation</a>
-          <a href="#" class="footer-link">Politique de confidentialité</a>
-          <a href="#" class="footer-link">Contact</a>
+        <div class="footer-section">
+          <h3>Catégories</h3>
+          <ul class="footer-links">
+            <li><a href="#" class="footer-link">Salon</a></li>
+            <li><a href="#" class="footer-link">Chambre</a></li>
+            <li><a href="#" class="footer-link">Salle à manger</a></li>
+            <li><a href="#" class="footer-link">Bureau</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h3>Support</h3>
+          <ul class="footer-links">
+            <li><a href="#" class="footer-link">Centre d'aide</a></li>
+            <li><a href="#" class="footer-link">Contact</a></li>
+            <li><a href="#" class="footer-link">Livraison</a></li>
+            <li><a href="#" class="footer-link">Retours</a></li>
+          </ul>
+        </div>
+        <div class="footer-cta">
+          <h3>Restez connecté</h3>
+          <p>Inscrivez-vous pour recevoir nos dernières offres et conseils</p>
+          <button class="footer-btn">Visiter le site</button>
+          <button class="footer-btn-outline">Explorer</button>
         </div>
       </div>
       <div class="footer-bottom">

@@ -3,14 +3,15 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { AdminService, UserDto, UsersResponse } from '../services/admin.service';
-import { AdminHeaderComponent } from '../admin-header/admin-header.component';
+import { SidebarComponent } from '../sidebar/sidebar';
+import { NotificationsService } from '../../../core/services/notifications.service';
 
 @Component({
   selector: 'app-users',
   templateUrl: './users.html',
   styleUrls: ['./users.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, AdminHeaderComponent]
+  imports: [CommonModule, FormsModule, SidebarComponent]
 })
 export class UsersComponent implements OnInit, OnDestroy {
   users: UserDto[] = [];
@@ -40,7 +41,7 @@ export class UsersComponent implements OnInit, OnDestroy {
     return Math.ceil(this.total / this.limit);
   }
 
-  constructor(private adminService: AdminService) {}
+  constructor(private adminService: AdminService, private notificationsService: NotificationsService) {}
 
   ngOnInit(): void {
     this.loadUsers();
@@ -75,7 +76,7 @@ export class UsersComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Erreur chargement utilisateurs:', error);
-        alert('Erreur lors du chargement des utilisateurs');
+        this.notificationsService.error('Erreur de chargement', 'Impossible de charger les utilisateurs');
         this.loading = false;
       }
     });
@@ -152,26 +153,26 @@ export class UsersComponent implements OnInit, OnDestroy {
   sendNotification(user: UserDto): void {
     const message = prompt(`Envoyer une notification à ${user.nom}:`);
     if (message) {
-      alert(`Notification envoyée à ${user.nom}: ${message}`);
+      this.notificationsService.success('Notification envoyée', `Notification envoyée à ${user.nom}`);
     }
   }
 
   sendMessage(user: UserDto): void {
     const message = prompt(`Envoyer un message à ${user.nom}:`);
     if (message) {
-      alert(`Message envoyé à ${user.nom}: ${message}`);
+      this.notificationsService.success('Message envoyé', `Message envoyé à ${user.nom}`);
     }
   }
 
   resetPassword(user: UserDto): void {
     if (confirm(`Êtes-vous sûr de vouloir réinitialiser le mot de passe de ${user.nom} ?`)) {
-      alert(`Mot de passe réinitialisé pour ${user.nom}. Un email a été envoyé.`);
+      this.notificationsService.success('Mot de passe réinitialisé', `Un email a été envoyé à ${user.nom}`);
     }
   }
 
   deleteUser(user: UserDto): void {
     if (confirm(`Êtes-vous sûr de vouloir supprimer définitivement le compte de ${user.nom} ? Cette action est irréversible.`)) {
-      alert(`Compte de ${user.nom} supprimé.`);
+      this.notificationsService.success('Compte supprimé', `Le compte de ${user.nom} a été supprimé`);
       this.loadUsers(); // Recharger la liste
     }
   }

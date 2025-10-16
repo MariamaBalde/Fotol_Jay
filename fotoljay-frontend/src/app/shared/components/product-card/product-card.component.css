@@ -1,9 +1,9 @@
 /* Carte produit moderne et élégante */
 .product-card {
   background: white;
-  border-radius: var(--border-radius-lg);
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -11,7 +11,7 @@
 
   &:hover {
     transform: translateY(-8px) scale(1.02);
-    box-shadow: var(--shadow-large);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
     border-color: rgba(249, 168, 38, 0.2);
   }
 
@@ -25,7 +25,7 @@
   position: absolute;
   top: 1rem;
   left: 1rem;
-  background: linear-gradient(135deg, var(--accent-color) 0%, #FFED4E 100%);
+  background: linear-gradient(135deg, #FFD700 0%, #FFED4E 100%);
   color: #333;
   padding: 0.5rem 1rem;
   border-radius: 2rem;
@@ -34,7 +34,7 @@
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  box-shadow: var(--shadow-vip);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
   z-index: 3;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -125,7 +125,7 @@
 .product-titre {
   font-size: 1.125rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #2D3748;
   margin-bottom: 0.5rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -137,7 +137,7 @@
 .product-prix {
   font-size: 1.5rem;
   font-weight: 800;
-  color: var(--primary-color);
+  color: #F9A826;
   margin-bottom: 1rem;
   letter-spacing: -0.02em;
 }
@@ -148,7 +148,7 @@
   gap: 1.25rem;
   margin-bottom: 1rem;
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  color: #718096;
 }
 
 .meta-item {

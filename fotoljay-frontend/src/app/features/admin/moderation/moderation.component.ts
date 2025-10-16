@@ -3,14 +3,15 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { AdminService, PendingProductDto, ModerationDecisionDto } from '../services/admin.service';
-import { AdminHeaderComponent } from '../admin-header/admin-header.component';
+import { SidebarComponent } from '../sidebar/sidebar';
+import { NotificationsService } from '../../../core/services/notifications.service';
 
 @Component({
   selector: 'app-moderation',
   templateUrl: './moderation.component.html',
   styleUrls: ['./moderation.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, AdminHeaderComponent]
+  imports: [CommonModule, FormsModule, SidebarComponent]
 })
 export class ModerationComponent implements OnInit, OnDestroy {
   pendingProducts: PendingProductDto[] = [];
@@ -41,7 +42,7 @@ export class ModerationComponent implements OnInit, OnDestroy {
 
   private subscriptions: Subscription[] = [];
 
-  constructor(private adminService: AdminService) {}
+  constructor(private adminService: AdminService, private notificationsService: NotificationsService) {}
 
   ngOnInit(): void {
     this.loadPendingProducts();
@@ -141,7 +142,7 @@ export class ModerationComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Erreur chargement produits en attente:', error);
-        alert('Erreur lors du chargement des produits en attente');
+        this.notificationsService.error('Erreur de chargement', 'Impossible de charger les produits en attente');
         this.loading = false;
       }
     });
@@ -194,7 +195,7 @@ export class ModerationComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Erreur modération:', error);
-        alert('Erreur lors de la modération du produit');
+        this.notificationsService.error('Erreur de modération', 'Impossible de modérer le produit');
         this.moderatingProductId = null;
       }
     });
