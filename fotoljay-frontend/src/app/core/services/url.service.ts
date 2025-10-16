@@ -8,10 +8,12 @@ export class UrlService {
   getImageUrl(cheminRelatif: string): string {
     if (!cheminRelatif) return '';
     
-    // Extraire le nom du fichier
-    const nomFichier = cheminRelatif.split('/').pop() || '';
+    // Si c'est une URL complète (http/https), la retourner telle quelle
+    if (cheminRelatif.startsWith('http')) {
+      return cheminRelatif;
+    }
     
-    // Construire l'URL complète
-    return `${environment.apiUrl.replace('/api', '')}/uploads/produits/${nomFichier}`;
+    // Si c'est un chemin relatif, construire l'URL complète
+    return `${environment.apiUrl.replace('/api', '')}${cheminRelatif}`;
   }
 }

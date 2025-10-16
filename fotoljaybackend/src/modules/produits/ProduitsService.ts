@@ -1,7 +1,7 @@
 import { ProduitsRepository } from './ProduitsRepository.js';
 import type { FiltresProduits } from './ProduitsRepository.js';
 import { NotificationsService } from '../notifications/NotificationsService.js';
-
+import { ProduitsCloudinaryService } from './ProduitsCloudinaryService.js';
 import { StatutProduit } from '@prisma/client';
 
 
@@ -35,15 +35,16 @@ export class ProduitsService {
     const dateExpiration = new Date();
     dateExpiration.setDate(dateExpiration.getDate() + 7);
 
-    // Créer le produit
+    // Créer le produit AVEC les images (elles sont incluses dans repository.creer())
     const produit = await this.repository.creer({
       ...donnees,
       utilisateurId,
       dateExpiration,
+      images, // Les images sont passées directement ici
     });
 
-    // Ajouter les images
-    await this.repository.ajouterImages(produit.id, images);
+    // NE PAS appeler ajouterImages() car les images sont déjà créées ci-dessus
+    // await this.repository.ajouterImages(produit.id, images);
 
     // Recharger avec les images
     return await this.repository.trouverParId(produit.id);
@@ -147,6 +148,11 @@ export class ProduitsService {
 
     if (statut === 'REFUSE' && !raisonRefus) {
       throw new Error('La raison du refus est requise');
+    }
+
+    // Si le produit est approuvé, uploader les images sur Cloudinary
+    if (statut === 'APPROUVE') {
+      await ProduitsCloudinaryService.uploadToCloudinary(id);
     }
 
     const produitModere = await this.repository.moderer(
